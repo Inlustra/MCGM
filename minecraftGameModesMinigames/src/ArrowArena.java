@@ -12,6 +12,7 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.WorldCreator;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -56,15 +57,15 @@ public class ArrowArena extends Minigame {
         }
     }
 
-    public ArrowArena(Plugin p) {
-        super(p, ArrowArena.class.getAnnotation(GameInfo.class));
+    public ArrowArena(Plugin p, Player... playing) {
+        super(p, ArrowArena.class.getAnnotation(GameInfo.class), playing);
         playersInGame = new ArrayList<>();
         aboveGround = new Vector(Misc.getRandom(-500, 500), 110, Misc.getRandom(-500, 500));
     }
 
     @Override
     public void startGame() {
-        for (Player player : p.getServer().getOnlinePlayers()) {
+        for (Player player : playing) {
             Misc.outPrint("Teleporting Players");
             playersInGame.add(player);
             player.teleport(new Location(Misc.mainWorld(), aboveGround.getX() + Misc.getRandom(-6, 6), 113, aboveGround.getZ() + Misc.getRandom(-6, 6)));
@@ -100,9 +101,14 @@ public class ArrowArena extends Minigame {
 
     @Override
     public void generateGame() {
+        Bukkit.createWorld(new WorldCreator("generatedWorld"));
     }
 
     @Override
     public void onLeaveArea() {
+    }
+
+    @Override
+    public void minigameTick(int secondsLeft) {
     }
 }
