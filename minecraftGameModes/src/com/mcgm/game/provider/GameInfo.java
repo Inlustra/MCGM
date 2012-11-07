@@ -4,7 +4,6 @@
  */
 package com.mcgm.game.provider;
 
-import com.mcgm.game.area.Area;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -32,10 +31,4 @@ public @interface GameInfo {
     boolean pvp() default false;
 
     int gameTime() default 300;
-
-    int maxX() default 200;
-
-    int maxY() default 100;
-
-    int maxZ() default 200;
 }

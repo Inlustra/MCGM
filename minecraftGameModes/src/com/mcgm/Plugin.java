@@ -27,6 +27,7 @@ public final class Plugin extends JavaPlugin {
     public void onEnable() {
         super.onEnable();
         GameManager.getInstance(this).loadManager();
+        Thread.setDefaultUncaughtExceptionHandler(GameManager.getInstance(this));
     }
     
     @Override

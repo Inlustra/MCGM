@@ -11,6 +11,7 @@ import com.mcgm.game.provider.GameDefinition;
 import com.mcgm.game.provider.GameSource;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ import org.bukkit.event.Listener;
  *
  * @author Tom
  */
-public class GameManager implements Listener {
+public class GameManager implements Listener, UncaughtExceptionHandler {
 
     private Minigame currentMinigame;
     private static GameManager instance;
@@ -39,22 +40,26 @@ public class GameManager implements Listener {
     private List<GameDefinition> gameDefs;
     private String gameList;
     private Plugin plugin;
+    private ArrayList<Player> playing;
 
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         currentMinigame.onEnd();
         playersVoted.clear();
         currentMinigame = null;
+        voteTime = 180;
     }
+    private int voteTime = 180;
 
     public GameManager(final Plugin p) {
+        playing = new ArrayList<>();
         plugin = p;
         int taskID = p.getServer().getScheduler().scheduleAsyncRepeatingTask(p, new Runnable() {
             @Override
             public void run() {
                 if (currentMinigame != null) {
                     currentMinigame.gameTime--;
-                    for (Player p : Bukkit.getOnlinePlayers()) {
+                    for (Player p : currentMinigame.playing) {
                         p.setLevel(currentMinigame.gameTime);
                     }
                     switch (currentMinigame.gameTime) {
@@ -70,6 +75,14 @@ public class GameManager implements Listener {
                         case 0:
                             currentMinigame.onTimeUp();
                             break;
+                    }
+                } else {
+                    if (!playing.isEmpty()) {
+                        voteTime--;
+                        
+                        if (voteTime == 0) {
+                            performCountDown(5);
+                        }
                     }
                 }
             }
@@ -88,7 +101,21 @@ public class GameManager implements Listener {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
                 World w = Bukkit.getWorld("generatedWorld");
-                ((Player)cs).teleport(w.getSpawnLocation());
+                ((Player) cs).teleport(w.getSpawnLocation());
+                return true;
+            }
+        };
+        Command play = new Command("play", "Add player to playing list", "PLAY", new ArrayList<String>()) {
+            @Override
+            public boolean execute(CommandSender cs, String string, String[] args) {
+                if (currentMinigame == null) {
+                    cs.sendMessage("Cast your vote!");
+                    cs.sendMessage(gameList);
+                    playing.add((Player) cs);
+                } else {
+                    cs.sendMessage("A game is currently in progress, please wait for the game to finish.");
+                    playing.add((Player) cs);
+                }
                 return true;
             }
         };
@@ -149,7 +176,7 @@ public class GameManager implements Listener {
             playersVoted.add(p);
             gdef.votes++;
             p.sendMessage(ChatColor.GREEN + "Vote for: " + ChatColor.GOLD + " " + gdef.getName() + ChatColor.GREEN + " counted!");
-            if (plugin.getServer().getOnlinePlayers().length == playersVoted.size()) {
+            if (playing.size() == playersVoted.size()) {
                 performCountDown(5);
             }
         } else {
@@ -226,5 +253,15 @@ public class GameManager implements Listener {
             }
         }
         return null;
+    }
+
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+        System.out.println("Uncaught exception: " + e.getMessage());
+        Location x = Bukkit.getWorld("world").getSpawnLocation();
+        currentMinigame = null;
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            player.teleport(x);
+        }
     }
 }

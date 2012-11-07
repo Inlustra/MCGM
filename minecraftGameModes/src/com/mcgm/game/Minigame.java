@@ -5,7 +5,6 @@
 package com.mcgm.game;
 
 import com.mcgm.Plugin;
-import com.mcgm.game.area.Area;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
 import org.bukkit.entity.Player;
@@ -27,9 +26,9 @@ public abstract class Minigame implements Listener {
     public int maxPlayers;
     public int gameTime;
     public Player[] winners;
-    public Area area;
+    public Player[] playing;
 
-    public Minigame(Plugin p, GameInfo f) {
+    public Minigame(Plugin p, GameInfo f, Player... playing) {
         this.p = p;
         name = f.name();
         version = f.version();
@@ -39,6 +38,7 @@ public abstract class Minigame implements Listener {
         maxPlayers = f.maxPlayers();
         teamAmount = f.teamAmount();
         gameTime = f.gameTime();
+        this.playing = playing;
         Misc.mainWorld().setPVP(pvpEnabled);
         p.getServer().getPluginManager().registerEvents(this, p);
     }
@@ -55,7 +55,5 @@ public abstract class Minigame implements Listener {
     
     public abstract void onLeaveArea();
 
-    public Area getArea() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+    public abstract void minigameTick(int secondsLeft); 
 }
