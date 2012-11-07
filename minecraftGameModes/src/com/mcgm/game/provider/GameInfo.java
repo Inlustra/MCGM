@@ -1,0 +1,41 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.mcgm.game.provider;
+
+import com.mcgm.game.area.Area;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+/**
+ *
+ * @author Tom
+ */
+@Retention(RetentionPolicy.RUNTIME)
+public @interface GameInfo {
+
+    String name();
+
+    String[] aliases() default {};
+
+    String description();
+
+    String[] authors();
+
+    double version() default 0.1;
+
+    int maxPlayers() default 100;
+
+    int teamAmount() default -1;
+
+    boolean pvp() default false;
+
+    int gameTime() default 300;
+
+    int maxX() default 200;
+
+    int maxY() default 100;
+
+    int maxZ() default 200;
+}
