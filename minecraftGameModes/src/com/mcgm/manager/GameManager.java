@@ -12,7 +12,6 @@ import com.mcgm.game.provider.GameSource;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,14 +20,13 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 /**
  *
@@ -45,13 +43,19 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     private ArrayList<Player> playing;
 
     @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN + "! We currently have: " + ChatColor.GOLD + playing.size() + ChatColor.GREEN + " playing" + ChatColor.DARK_PURPLE + " Minigames!");
+        e.getPlayer().teleport(Misc.MAIN_SPAWN);
+    }
+
+    @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
             currentMinigame.onEnd();
             HandlerList.unregisterAll(currentMinigame);
             playersVoted.clear();
             for (Player p : currentMinigame.playing) {
-                p.teleport(Misc.getMainWorld().getSpawnLocation());
+                p.teleport(Misc.MAIN_SPAWN);
                 p.setHealth(20);
                 p.getInventory().clear();
             }
@@ -209,6 +213,8 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             playersVoted.add(p);
             gdef.votes++;
             p.sendMessage(ChatColor.GREEN + "Vote for: " + ChatColor.GOLD + " " + gdef.getName() + ChatColor.GREEN + " counted!");
+            Bukkit.broadcastMessage(ChatColor.GOLD + gdef.getName() + ChatColor.GREEN + " votes: " + ChatColor.GOLD
+                    + gdef.votes + ChatColor.GREEN + " out of " + ChatColor.GOLD + playing.size());
             if (playing.size() == playersVoted.size() && playing.size() > 1) {
                 performCountDown(5);
             }

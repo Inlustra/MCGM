@@ -26,10 +26,8 @@ public class GameEndEvent extends Event {
     public GameEndEvent(Minigame m, boolean timeUp, Player... winners) {
         this.winners = winners;
         this.minigame = m;
-        String winnersList = "LOL";
-        int creditsAward = 0;
-        Bukkit.broadcastMessage(ChatColor.WHITE + "(" + ChatColor.AQUA + m.name + ChatColor.WHITE + ") " + ChatColor.GOLD + "Winners: " + winnersList);
-        Bukkit.broadcastMessage("They have been awarded " + ChatColor.GREEN + creditsAward + ChatColor.WHITE + " credits");
+        Bukkit.broadcastMessage(ChatColor.WHITE + "(" + ChatColor.AQUA + m.name + ChatColor.WHITE + ") " + ChatColor.GOLD + "Winners: " + Misc.buildPlayerString(winners, " "));
+        Bukkit.broadcastMessage("They have been awarded " + ChatColor.GREEN + m.getCredits() + ChatColor.WHITE + " credits");
     }
 
     public Minigame getMinigame() {

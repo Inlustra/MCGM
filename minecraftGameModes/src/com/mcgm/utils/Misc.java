@@ -22,6 +22,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.entity.Player;
 
 /**
  *
@@ -31,6 +32,7 @@ public class Misc {
 
     public static String MAIN_WORLD = "world";
     public static String MINIGAME_WORLD = "minigameWorld";
+    public static Location MAIN_SPAWN = new Location(Misc.getMainWorld(), 94, 179, 163);
 
     public static World getMainWorld() {
         return Bukkit.getWorld(MAIN_WORLD);
@@ -113,6 +115,17 @@ public class Misc {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < str.length; i++) {
             sb.append(str[i]);
+            if (i != str.length - 1) {
+                sb.append(separator);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String buildPlayerString(Player[] str, String separator) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < str.length; i++) {
+            sb.append(str[i].getName());
             if (i != str.length - 1) {
                 sb.append(separator);
             }
