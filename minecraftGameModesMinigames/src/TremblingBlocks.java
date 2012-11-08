@@ -37,7 +37,7 @@ public class TremblingBlocks extends Minigame {
             Arrow arrow = ((Arrow) event.getEntity());
             if (arrow.getShooter() instanceof Player) {
                 Location explosionLoc = arrow.getLocation();
-                Misc.getMinigameWorld().createExplosion(explosionLoc, 1);
+                arrow.getWorld().createExplosion(explosionLoc, 2);
                 arrow.remove();
             }
         }
@@ -45,15 +45,18 @@ public class TremblingBlocks extends Minigame {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
-        Location playerLoc = e.getPlayer().getLocation();
-        Location playerStandingOn = new Location(playerLoc.getWorld(), playerLoc.getBlockX(), playerLoc.getBlockY() - 1, playerLoc.getBlockZ());
-        if ((LastLocation.get(e.getPlayer()).getBlock().getX() != playerStandingOn.getBlock().getX())
-                || (LastLocation.get(e.getPlayer()).getBlock().getZ() != playerStandingOn.getBlock().getZ())) {
-            LastLocation.get(e.getPlayer()).getBlock().setType(Material.AIR);
-            LastLocation.put(e.getPlayer(), playerStandingOn);
-        }
-        if (playerLoc.getY() < 130) {
-            e.getPlayer().setHealth(0);
+        if(e.getPlayer().getWorld() == Misc.getMinigameWorld()){
+            Location playerLoc = e.getPlayer().getLocation();
+            Location playerStandingOn = new Location(playerLoc.getWorld(), playerLoc.getBlockX(), playerLoc.getBlockY() - 1, playerLoc.getBlockZ());
+            if ((LastLocation.get(e.getPlayer()).getBlock().getX() != playerStandingOn.getBlock().getX())
+                    || (LastLocation.get(e.getPlayer()).getBlock().getZ() != playerStandingOn.getBlock().getZ())) {
+                LastLocation.get(e.getPlayer()).getBlock().setType(Material.AIR);
+                LastLocation.put(e.getPlayer(), playerStandingOn);
+            }
+            if (playerLoc.getY() < 130) {
+                e.getPlayer().setHealth(0);
+                e.getPlayer().teleport(Misc.getMainWorld().getSpawnLocation());
+            }
         }
     }
 
