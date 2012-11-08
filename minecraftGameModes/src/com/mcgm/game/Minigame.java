@@ -55,5 +55,5 @@ public abstract class Minigame implements Listener {
     
     public abstract void onLeaveArea();
 
-    public abstract void minigameTick(int secondsLeft); 
+    public abstract void minigameTick(); 
 }

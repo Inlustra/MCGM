@@ -101,7 +101,6 @@ public class ArrowArena extends Minigame {
 
     @Override
     public void generateGame() {
-        Bukkit.createWorld(new WorldCreator("generatedWorld"));
     }
 
     @Override
@@ -109,6 +108,6 @@ public class ArrowArena extends Minigame {
     }
 
     @Override
-    public void minigameTick(int secondsLeft) {
+    public void minigameTick() {
     }
 }

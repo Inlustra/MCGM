@@ -26,6 +26,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 
 /**
@@ -45,6 +46,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         currentMinigame.onEnd();
+        HandlerList.unregisterAll(currentMinigame);
         playersVoted.clear();
         currentMinigame = null;
         voteTime = 180;
@@ -62,24 +64,10 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
                     for (Player p : currentMinigame.playing) {
                         p.setLevel(currentMinigame.gameTime);
                     }
-                    switch (currentMinigame.gameTime) {
-                        case 60:
-                            Bukkit.broadcastMessage(ChatColor.GOLD + currentMinigame.name + ChatColor.GREEN + " has only 1 minute left!");
-                            break;
-                        case 30:
-                            Bukkit.broadcastMessage(ChatColor.GOLD + currentMinigame.name + ChatColor.GREEN + " You've got 30 seconds to finish up!");
-                            break;
-                        case 10:
-                            Bukkit.broadcastMessage(ChatColor.GOLD + currentMinigame.name + ChatColor.GREEN + " finishes in 15 seconds!");
-                            break;
-                        case 0:
-                            currentMinigame.onTimeUp();
-                            break;
-                    }
+                    currentMinigame.minigameTick();
                 } else {
                     if (!playing.isEmpty()) {
                         voteTime--;
-                        
                         if (voteTime == 0) {
                             performCountDown(5);
                         }
@@ -105,16 +93,28 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
                 return true;
             }
         };
+        Command endgame = new Command("forceend", "Forces the end of the current minigame", "WORLDTP", new ArrayList<String>()) {
+            @Override
+            public boolean execute(CommandSender cs, String string, String[] args) {
+                World w = Bukkit.getWorld("generatedWorld");
+                ((Player) cs).teleport(w.getSpawnLocation());
+                return true;
+            }
+        };
         Command play = new Command("play", "Add player to playing list", "PLAY", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                if (currentMinigame == null) {
-                    cs.sendMessage("Cast your vote!");
-                    cs.sendMessage(gameList);
-                    playing.add((Player) cs);
+                if (!playing.contains((Player) cs)) {
+                    if (currentMinigame == null) {
+                        cs.sendMessage("Cast your vote!");
+                        cs.sendMessage(gameList);
+                        playing.add((Player) cs);
+                    } else {
+                        cs.sendMessage("A game is currently in progress, please wait for the game to finish.");
+                        playing.add((Player) cs);
+                    }
                 } else {
-                    cs.sendMessage("A game is currently in progress, please wait for the game to finish.");
-                    playing.add((Player) cs);
+                    cs.sendMessage("You're already playing!");
                 }
                 return true;
             }
@@ -129,20 +129,25 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         Command vote = new Command("vote", "Simple vote command", "VOTING", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                if (currentMinigame != null) {
-                    cs.sendMessage("§cYou cannot vote during a minigame!");
-                    return true;
-                }
-                if (args.length != 0 && cs instanceof Player) {
-                    String name = Misc.buildString(args, " ");
-                    GameDefinition gameFound = getGame(name);
-                    if (gameFound != null) {
-                        addVote((Player) cs, gameFound);
+                if (playing.contains((Player) cs)) {
+                    if (currentMinigame != null) {
+                        cs.sendMessage("§cA minigame is currently in play, please wait for it to end");
                         return true;
                     }
-                    cs.sendMessage("§cCould not find game: §2" + name.trim());
+
+                    if (args.length != 0 && cs instanceof Player) {
+                        String name = Misc.buildString(args, " ");
+                        GameDefinition gameFound = getGame(name);
+                        if (gameFound != null) {
+                            addVote((Player) cs, gameFound);
+                            return true;
+                        }
+                        cs.sendMessage("§cCould not find game: §2" + name.trim());
+                    } else {
+                        cs.sendMessage("§cWrong usage, Please use as follows: §2/vote <gamename>");
+                    }
                 } else {
-                    cs.sendMessage("§cWrong usage, Please use as follows: §2/vote <gamename>");
+                    cs.sendMessage("§c Please type /play in order to join the queue");
                 }
                 return true;
             }
