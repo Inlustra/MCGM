@@ -26,7 +26,7 @@ public class DefaultMinigame extends Minigame {
     @Override
     public void minigameTick() {
     }
-
+    
     @Override
     public void onCountDown() {
     }
