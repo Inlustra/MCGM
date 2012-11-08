@@ -75,7 +75,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
                     }
                     currentMinigame.minigameTick();
                 } else {
-                    if (!playing.isEmpty()) {
+                    if (playing.size() > 1) {
                         for (Player p : playing) {
                             p.setLevel(voteTime);
                         }
@@ -90,21 +90,6 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     }
 
     public void loadManager() {
-        Command WorldGen = new Command("worldgen", "World Generation", "WORLDGEN", new ArrayList<String>()) {
-            @Override
-            public boolean execute(CommandSender cs, String string, String[] args) {
-                Bukkit.createWorld(new WorldCreator("generatedWorld"));
-                return true;
-            }
-        };
-        Command WorldTp = new Command("worldtp", "World Teleport", "WORLDTP", new ArrayList<String>()) {
-            @Override
-            public boolean execute(CommandSender cs, String string, String[] args) {
-                World w = Bukkit.getWorld("generatedWorld");
-                ((Player) cs).teleport(w.getSpawnLocation());
-                return true;
-            }
-        };
         Command endgame = new Command("forceend", "Forces the end of the current minigame", "WORLDTP", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
@@ -112,25 +97,52 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
                 return true;
             }
         };
-        Command play = new Command("play", "Add player to playing list", "PLAY", new ArrayList<String>()) {
+        Command startgame = new Command("forcestart", "Forces the start of minigame", "FORCESTART", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                if (!playing.contains((Player) cs)) {
-                    if (currentMinigame == null) {
-                        cs.sendMessage("Cast your votes!");
-                        cs.sendMessage(gameList);
-                        playing.add((Player) cs);
-                    } else {
-                        cs.sendMessage("A game is currently in progress, please wait for the game to finish.");
-                        playing.add((Player) cs);
+                if (args.length != 0 && cs instanceof Player) {
+                    String name = Misc.buildString(args, " ");
+                    GameDefinition gameFound = getGame(name);
+                    if (gameFound != null) {
+                        performCountDown(5, gameFound);
+                        return true;
                     }
+                    cs.sendMessage("§cCould not find game: §2" + name.trim());
                 } else {
-                    cs.sendMessage("You're already playing!");
+                    cs.sendMessage("§cWrong usage, Please use as follows: §2/vote <gamename>");
                 }
                 return true;
             }
         };
-        Command list = new Command("list", "Simple list command", "LISTING", new ArrayList<String>()) {
+        Command lobby = new Command("lobby", "remove player from playing list", "LOBBY", new ArrayList<String>()) {
+            @Override
+            public boolean execute(CommandSender cs, String string, String[] args) {
+                playing.remove((Player) cs);
+                return true;
+            }
+        };
+        Command play = new Command("play", "Add player to playing list", "PLAY", new ArrayList<String>()) {
+            @Override
+            public boolean execute(CommandSender cs, String string, String[] args) {
+                if (!playing.contains((Player) cs)) {
+                    for (Player p : playing) {
+                        p.sendMessage(ChatColor.GOLD + cs.getName() + ChatColor.GREEN + " is now playing!");
+                    }
+                    if (currentMinigame == null) {
+                        cs.sendMessage(ChatColor.GOLD + "Cast your votes!");
+                        cs.sendMessage(gameList);
+                        playing.add((Player) cs);
+                    } else {
+                        cs.sendMessage(ChatColor.RED + "A game is currently in progress, please wait for the game to finish.");
+                        playing.add((Player) cs);
+                    }
+                } else {
+                    cs.sendMessage(ChatColor.RED + "You're already playing!");
+                }
+                return true;
+            }
+        };
+        Command list = new Command("games", "Simple list command", "LISTING", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
                 cs.sendMessage(gameList);
@@ -145,15 +157,18 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
                         cs.sendMessage("§cA minigame is currently in play, please wait for it to end");
                         return true;
                     }
-
                     if (args.length != 0 && cs instanceof Player) {
-                        String name = Misc.buildString(args, " ");
-                        GameDefinition gameFound = getGame(name);
-                        if (gameFound != null) {
-                            addVote((Player) cs, gameFound);
-                            return true;
+                        if (playing.size() > 1) {
+                            String name = Misc.buildString(args, " ");
+                            GameDefinition gameFound = getGame(name);
+                            if (gameFound != null) {
+                                addVote((Player) cs, gameFound);
+                                return true;
+                            }
+                            cs.sendMessage("§cCould not find game: §2" + name.trim());
+                        } else {
+                            cs.sendMessage("§cPlease wait until there are at least§2 2 players§c playing (Wait until level countdown starts)");
                         }
-                        cs.sendMessage("§cCould not find game: §2" + name.trim());
                     } else {
                         cs.sendMessage("§cWrong usage, Please use as follows: §2/vote <gamename>");
                     }
@@ -183,8 +198,8 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         plugin.getCommandManager().addCommand(define);
         plugin.getCommandManager().addCommand(play);
         plugin.getCommandManager().addCommand(endgame);
-        plugin.getCommandManager().addCommand(WorldGen);
-        plugin.getCommandManager().addCommand(WorldTp);
+        plugin.getCommandManager().addCommand(lobby);
+        plugin.getCommandManager().addCommand(startgame);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     List<Player> playersVoted = new ArrayList<>();
@@ -194,7 +209,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             playersVoted.add(p);
             gdef.votes++;
             p.sendMessage(ChatColor.GREEN + "Vote for: " + ChatColor.GOLD + " " + gdef.getName() + ChatColor.GREEN + " counted!");
-            if (playing.size() == playersVoted.size()) {
+            if (playing.size() == playersVoted.size() && playing.size() > 1) {
                 performCountDown(5);
             }
         } else {
