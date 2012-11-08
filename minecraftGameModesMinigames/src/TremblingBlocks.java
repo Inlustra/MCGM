@@ -4,11 +4,16 @@ import com.mcgm.game.Minigame;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
 import java.util.HashMap;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 
 @GameInfo(name = "Trembling Blocks", aliases = {"TB"}, pvp = true, authors = {"Pt"},
@@ -24,14 +29,27 @@ public class TremblingBlocks extends Minigame {
     public HashMap<Player,Location> LastLocation = new HashMap<>();
     
     @EventHandler
+    public void onProjectileHit(ProjectileHitEvent event) {
+        if (event.getEntity() instanceof Arrow) {
+            Arrow arrow = ((Arrow) event.getEntity());
+            if (arrow.getShooter() instanceof Player) {
+                Location explosionLoc = arrow.getLocation();
+                Misc.getMainWorld().createExplosion(explosionLoc, 1);
+                arrow.remove();
+            }
+        }
+    }
+    
+    @EventHandler
     public void onPlayerMove(PlayerMoveEvent e){
         Location playerLoc = e.getPlayer().getLocation();
         Location playerStandingOn = new Location(playerLoc.getWorld(), playerLoc.getBlockX(), playerLoc.getBlockY()-1, playerLoc.getBlockZ());
         if((LastLocation.get(e.getPlayer()).getBlock().getX() != playerStandingOn.getBlock().getX()) || (LastLocation.get(e.getPlayer()).getBlock().getZ() != playerStandingOn.getBlock().getZ())){
-            System.out.println("Last Block: " + LastLocation.get(e.getPlayer()).getBlock().toString());
-            System.out.println("Current Block: " + playerStandingOn.getBlock().toString());
             LastLocation.get(e.getPlayer()).getBlock().setType(Material.AIR);
             LastLocation.put(e.getPlayer(), playerStandingOn);
+        }
+        if(playerLoc.getY() < 130){
+            e.getPlayer().setHealth(0);
         }
     }
 
@@ -57,6 +75,12 @@ public class TremblingBlocks extends Minigame {
             Location teleport = new Location(area.getWorld(), area.getBlockX(), area.getBlockY()+1, area.getBlockZ());
             p.teleport(teleport);
             LastLocation.put(p, teleport);
+            PlayerInventory inventory = p.getInventory();
+            inventory.clear();
+            ItemStack bow = new ItemStack(Material.BOW, 1);
+            ItemStack arrows = new ItemStack(Material.ARROW, 10);
+            ItemStack swod = new ItemStack(Material.IRON_SWORD, 1);
+            inventory.addItem(bow, arrows, swod);
         }
     }
 
