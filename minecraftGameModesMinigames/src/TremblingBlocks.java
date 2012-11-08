@@ -3,6 +3,7 @@ import com.mcgm.Plugin;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
+import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,10 +21,18 @@ public class TremblingBlocks extends Minigame {
         super(p, TremblingBlocks.class.getAnnotation(GameInfo.class));
     }
     
+    public HashMap<Player,Location> LastLocation = new HashMap<>();
+    
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e){
         Location playerLoc = e.getPlayer().getLocation();
-        playerLoc.getBlock().setType(Material.AIR);
+        Location playerStandingOn = new Location(playerLoc.getWorld(), playerLoc.getBlockX(), playerLoc.getBlockY()-1, playerLoc.getBlockZ());
+        if((LastLocation.get(e.getPlayer()).getBlock().getX() != playerStandingOn.getBlock().getX()) || (LastLocation.get(e.getPlayer()).getBlock().getZ() != playerStandingOn.getBlock().getZ())){
+            System.out.println("Last Block: " + LastLocation.get(e.getPlayer()).getBlock().toString());
+            System.out.println("Current Block: " + playerStandingOn.getBlock().toString());
+            LastLocation.get(e.getPlayer()).getBlock().setType(Material.AIR);
+            LastLocation.put(e.getPlayer(), playerStandingOn);
+        }
     }
 
     @Override
@@ -42,10 +51,12 @@ public class TremblingBlocks extends Minigame {
     public void startGame() {
         for(int i=0; i<100; i++){
             Location spawn = new Location(area.getWorld(),area.getBlockX()+Misc.getRandom(-5, 5),area.getBlockY(),area.getBlockZ()+Misc.getRandom(-5, 5));
-            spawn.getBlock().setType(Material.BAKED_POTATO);
+            spawn.getBlock().setType(Material.BRICK);
         }
         for(Player p : playing){
-            p.teleport(area);
+            Location teleport = new Location(area.getWorld(), area.getBlockX(), area.getBlockY()+1, area.getBlockZ());
+            p.teleport(teleport);
+            LastLocation.put(p, teleport);
         }
     }
 
