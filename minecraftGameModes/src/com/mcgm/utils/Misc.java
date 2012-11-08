@@ -92,7 +92,7 @@ public class Misc {
             CuboidClipboard cc = SchematicFormat.MCEDIT.load(file);
             cc.setOrigin(origin.add(cc.getOffset()));
 
-            for (int x = (int) cc.getOrigin().getX(); x < cc.getOrigin().getX() + cc.getHeight(); x++) {
+            for (int x = (int) cc.getOrigin().getX(); x < cc.getOrigin().getX() + cc.getWidth(); x++) {
                 for (int y = (int) cc.getOrigin().getY(); y < cc.getOrigin().getY() + cc.getHeight(); y++) {
                     for (int z = (int) cc.getOrigin().getZ(); z < cc.getOrigin().getZ() + cc.getLength(); z++) {
                         Location loc = new Location(Bukkit.getWorld(world), x, y, z);
