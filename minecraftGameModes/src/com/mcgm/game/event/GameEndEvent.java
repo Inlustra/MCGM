@@ -5,6 +5,9 @@
 package com.mcgm.game.event;
 
 import com.mcgm.game.Minigame;
+import com.mcgm.utils.Misc;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -23,6 +26,10 @@ public class GameEndEvent extends Event {
     public GameEndEvent(Minigame m, boolean timeUp, Player... winners) {
         this.winners = winners;
         this.minigame = m;
+        String winnersList = "LOL";
+        int creditsAward = 0;
+        Bukkit.broadcastMessage(ChatColor.WHITE + "(" + ChatColor.AQUA + m.name + ChatColor.WHITE + ") " + ChatColor.GOLD + "Winners: " + winnersList);
+        Bukkit.broadcastMessage("They have been awarded " + ChatColor.GREEN + creditsAward + ChatColor.WHITE + " credits");
     }
 
     public Minigame getMinigame() {
