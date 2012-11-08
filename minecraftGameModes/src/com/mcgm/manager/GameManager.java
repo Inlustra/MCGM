@@ -61,16 +61,19 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             public void run() {
                 if (currentMinigame != null) {
                     currentMinigame.gameTime--;
-                    for (Player p : currentMinigame.playing) {
+                    for (Player p : playing) {
                         p.setLevel(currentMinigame.gameTime);
                     }
                     currentMinigame.minigameTick();
                 } else {
                     if (!playing.isEmpty()) {
-                        voteTime--;
+                        for (Player p : playing) {
+                            p.setLevel(voteTime);
+                        }
                         if (voteTime == 0) {
                             performCountDown(5);
                         }
+                        voteTime--;
                     }
                 }
             }
