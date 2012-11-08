@@ -25,6 +25,7 @@ public class TremblingBlocks extends Minigame {
     Location area = new Location(Misc.getMinigameWorld(), Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
             Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
             Misc.getMinigameWorld().getSpawnLocation().getBlockZ());
+    Location[] spawns = new Location[]{area};
 
     public TremblingBlocks(Plugin p) {
         super(p, TremblingBlocks.class.getAnnotation(GameInfo.class));
@@ -45,7 +46,7 @@ public class TremblingBlocks extends Minigame {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
-        if(e.getPlayer().getWorld() == Misc.getMinigameWorld()){
+        if (e.getPlayer().getWorld() == Misc.getMinigameWorld()) {
             Location playerLoc = e.getPlayer().getLocation();
             Location playerStandingOn = new Location(playerLoc.getWorld(), playerLoc.getBlockX(), playerLoc.getBlockY() - 1, playerLoc.getBlockZ());
             if ((LastLocation.get(e.getPlayer()).getBlock().getX() != playerStandingOn.getBlock().getX())
@@ -66,7 +67,7 @@ public class TremblingBlocks extends Minigame {
 
     @Override
     public void onCountDown() {
-        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
+        spawns = Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
                 Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
                 Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD);
     }
@@ -74,14 +75,12 @@ public class TremblingBlocks extends Minigame {
     @Override
     public void onTimeUp() {
     }
+
     @Override
     public void startGame() {
-        for (int i = 0; i < 100; i++) {
-            Location spawn = new Location(area.getWorld(), area.getBlockX() + Misc.getRandom(-5, 5), area.getBlockY(), area.getBlockZ() + Misc.getRandom(-5, 5));
-            spawn.getBlock().setType(Material.BRICK);
-        }
         for (Player p : playing) {
-            Location teleport = new Location(area.getWorld(), area.getBlockX(), area.getBlockY() + 1, area.getBlockZ());
+            System.out.println(spawns.length);
+            Location teleport = spawns[Misc.getRandom(1, spawns.length)];
             p.teleport(teleport);
             LastLocation.put(p, teleport);
             PlayerInventory inventory = p.getInventory();
@@ -91,6 +90,7 @@ public class TremblingBlocks extends Minigame {
             ItemStack sword = new ItemStack(Material.IRON_SWORD, 1);
             inventory.addItem(bow, arrows, sword);
         }
+
     }
 
     @Override

@@ -52,10 +52,10 @@ public abstract class Minigame implements Listener {
     public abstract void startGame();
 
     public abstract void onEnd();
-    
+
     public abstract void generateGame();
-    
+
     public abstract void onLeaveArea();
 
-    public abstract void minigameTick(); 
+    public abstract void minigameTick();
 }

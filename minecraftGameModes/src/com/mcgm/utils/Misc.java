@@ -4,17 +4,22 @@
  */
 package com.mcgm.utils;
 
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.CuboidClipboard;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.data.DataException;
 import com.sk89q.worldedit.schematic.SchematicFormat;
-import com.sk89q.worldedit.snapshots.Snapshot;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 
@@ -40,16 +45,19 @@ public class Misc {
     }
 
     public static void generateMinigameWorld() {
-        Bukkit.getServer().createWorld(new WorldCreator(MINIGAME_WORLD));
+        try {
+            removeMinigameWorld();
+            Bukkit.getServer().createWorld(new WorldCreator(MINIGAME_WORLD));
+        } catch (Exception e) {
+        }
     }
 
     public static void removeMinigameWorld() {
-        Bukkit.unloadWorld(MINIGAME_WORLD, false);
-        File f = new File(Paths.serverDir.getPath() + "/" + MINIGAME_WORLD);
         try {
+            Bukkit.unloadWorld(MINIGAME_WORLD, false);
+            File f = new File(Paths.serverDir.getPath() + "/" + MINIGAME_WORLD);
             delete(f);
-        } catch (IOException ex) {
-            Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
         }
     }
 
@@ -64,14 +72,41 @@ public class Misc {
         }
     }
 
-    public static void loadArea(final File file, final Vector origin, String world) {
+    public static Location[] loadArea(final File file, final Vector origin, String world) {
         try {
             EditSession es = new EditSession(BukkitUtil.getLocalWorld(Bukkit.getWorld(world)), 999999999);
             CuboidClipboard cc = SchematicFormat.MCEDIT.load(file);
             cc.paste(es, origin, false);
+            return getSpawnPoints(file, origin, world);
         } catch (MaxChangedBlocksException | IOException | DataException ex) {
             Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return null;
+    }
+
+    public static Location[] getSpawnPoints(final File file, final Vector origin, String world) {
+        ArrayList<Location> l = new ArrayList<>();
+        try {
+            CuboidClipboard cc = SchematicFormat.MCEDIT.load(file);
+            cc.setOrigin(origin.add(cc.getOffset()));
+
+            for (int x = (int) cc.getOrigin().getX(); x < cc.getOrigin().getX() + cc.getHeight(); x++) {
+                for (int y = (int) cc.getOrigin().getY(); y < cc.getOrigin().getY() + cc.getHeight(); y++) {
+                    for (int z = (int) cc.getOrigin().getZ(); z < cc.getOrigin().getZ() + cc.getLength(); z++) {
+                        Location loc = new Location(Bukkit.getWorld(world), x, y, z);
+                        if (loc.getBlock().getType() == Material.REDSTONE_TORCH_ON) {
+                            l.add(loc);
+                        }
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (DataException ex) {
+            Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return l.toArray(new Location[l.size()]);
+
     }
 
     public static String buildString(String[] str, String separator) {

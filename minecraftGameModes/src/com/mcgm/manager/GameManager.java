@@ -46,15 +46,19 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
 
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
-        currentMinigame.onEnd();
-        HandlerList.unregisterAll(currentMinigame);
-        playersVoted.clear();
-        for (Player p : currentMinigame.playing) {
-            p.teleport(Misc.getMainWorld().getSpawnLocation());
+        if (currentMinigame != null) {
+            currentMinigame.onEnd();
+            HandlerList.unregisterAll(currentMinigame);
+            playersVoted.clear();
+            for (Player p : currentMinigame.playing) {
+                p.teleport(Misc.getMainWorld().getSpawnLocation());
+                p.setHealth(20);
+                p.getInventory().clear();
+            }
+            currentMinigame = null;
+            Misc.removeMinigameWorld();
+            voteTime = 180;
         }
-        currentMinigame = null;
-        Misc.removeMinigameWorld();
-        voteTime = 180;
     }
     private int voteTime = 180;
 
@@ -204,6 +208,11 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     }
 
     public void performCountDown(final int time, final GameDefinition game) {
+        Misc.generateMinigameWorld();
+
+        for (World w : Bukkit.getWorlds()) {
+            System.out.println(w.getName() + " MCGM");
+        }
         GameDefinition gameToRun = game;
         if (game == null) {
             GameDefinition highestVoted = gameDefs.get(0);
@@ -214,9 +223,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             }
             gameToRun = highestVoted;
         }
-        if(!Misc.minigameWorldExists()) {
-            Misc.generateMinigameWorld();
-        }
+
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor(Plugin.class).newInstance(plugin));
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
@@ -285,6 +292,4 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     public ArrayList<Player> getPlaying() {
         return playing;
     }
-    
-    
 }
