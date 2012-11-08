@@ -4,7 +4,7 @@ import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
-import com.mysql.jdbc.JDBC4Connection;
+import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -28,6 +28,8 @@ import org.bukkit.inventory.PlayerInventory;
 gameTime = 65, description = "First to find the diamonds wins!")
 public class DiamondHunt extends Minigame {
 
+    ArrayList<Location> diamondLocations = new ArrayList<> ();
+    
     Location cube = new Location(Misc.getMinigameWorld(), Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
             Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
             Misc.getMinigameWorld().getSpawnLocation().getBlockZ());
@@ -55,6 +57,10 @@ public class DiamondHunt extends Minigame {
                 Bukkit.broadcastMessage("Player " + ChatColor.GOLD + player.getName().toString() + ChatColor.WHITE + " wins!");
                 Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(this, false, player));
             }
+            
+            for (Location l : diamondLocations){
+                player.playSound(l, Sound.ORB_PICKUP, 0.1f, 1);
+            }
         }
     }
 
@@ -71,10 +77,12 @@ public class DiamondHunt extends Minigame {
                             dirtBlocks++;
                         } else {
                             Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIAMOND_ORE);
+                            diamondLocations.add(dirt);
                             diamondOre++;
                         }
                     } else if (a > 10 && diamondOre == 0) {
                         Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIAMOND_ORE);
+                        diamondLocations.add(dirt);
                         diamondOre++;
                     } else {
                         if ((dirt.getBlockY() > cube.getBlockY() - 5)) {
