@@ -18,7 +18,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-@GameInfo(name = "Trembling Blocks", aliases = {"TB"}, pvp = true, authors = {"Pt"},
+@GameInfo(name = "Trembling Blocks", aliases = {"TB"}, pvp = true, authors = {"Pt + Tom"},
 gameTime = 125, description = "Stand still and shoot, dont turn back")
 public class TremblingBlocks extends Minigame {
 
