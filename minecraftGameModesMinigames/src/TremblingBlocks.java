@@ -36,12 +36,14 @@ public class TremblingBlocks extends Minigame {
     
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
+        System.out.println("Player died!");
         if (playing.contains(event.getEntity())) {
             playing.remove(event.getEntity());
         }
         if (playing.size() == 1) {
             Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, playing.get(0)));
         }
+        System.out.println(playing.size());
     }
     
     @EventHandler

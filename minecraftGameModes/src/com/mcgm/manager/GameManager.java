@@ -74,8 +74,10 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             public void run() {
                 if (currentMinigame != null) {
                     currentMinigame.gameTime--;
-                    for (Player p : playing) {
-                        p.setLevel(currentMinigame.gameTime);
+                    if (currentMinigame.gameTime > 0) {
+                        for (Player p : playing) {
+                            p.setLevel(currentMinigame.gameTime);
+                        }
                     }
                     currentMinigame.minigameTick();
                 } else {
