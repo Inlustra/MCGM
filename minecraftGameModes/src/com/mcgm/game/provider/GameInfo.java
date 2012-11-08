@@ -31,4 +31,6 @@ public @interface GameInfo {
     boolean pvp() default false;
 
     int gameTime() default 300;
+    
+    int credits() default 50;
 }

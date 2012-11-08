@@ -210,9 +210,6 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     public void performCountDown(final int time, final GameDefinition game) {
         Misc.generateMinigameWorld();
 
-        for (World w : Bukkit.getWorlds()) {
-            System.out.println(w.getName() + " MCGM");
-        }
         GameDefinition gameToRun = game;
         if (game == null) {
             GameDefinition highestVoted = gameDefs.get(0);
@@ -228,6 +225,9 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor(Plugin.class).newInstance(plugin));
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        for (GameDefinition gdef : gameDefs) {
+            gdef.votes = 0;
         }
         final GameDefinition g = gameToRun;
         plugin.getServer().broadcastMessage("Starting " + g.getName());
