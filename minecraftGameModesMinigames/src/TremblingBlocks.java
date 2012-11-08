@@ -37,7 +37,7 @@ public class TremblingBlocks extends Minigame {
             Arrow arrow = ((Arrow) event.getEntity());
             if (arrow.getShooter() instanceof Player) {
                 Location explosionLoc = arrow.getLocation();
-                Misc.getMainWorld().createExplosion(explosionLoc, 1);
+                Misc.getMinigameWorld().createExplosion(explosionLoc, 1);
                 arrow.remove();
             }
         }
@@ -49,8 +49,6 @@ public class TremblingBlocks extends Minigame {
         Location playerStandingOn = new Location(playerLoc.getWorld(), playerLoc.getBlockX(), playerLoc.getBlockY() - 1, playerLoc.getBlockZ());
         if ((LastLocation.get(e.getPlayer()).getBlock().getX() != playerStandingOn.getBlock().getX())
                 || (LastLocation.get(e.getPlayer()).getBlock().getZ() != playerStandingOn.getBlock().getZ())) {
-            System.out.println("Last Block: " + LastLocation.get(e.getPlayer()).getBlock().toString());
-            System.out.println("Current Block: " + playerStandingOn.getBlock().toString());
             LastLocation.get(e.getPlayer()).getBlock().setType(Material.AIR);
             LastLocation.put(e.getPlayer(), playerStandingOn);
         }
@@ -73,7 +71,6 @@ public class TremblingBlocks extends Minigame {
     @Override
     public void onTimeUp() {
     }
-
     @Override
     public void startGame() {
         for (int i = 0; i < 100; i++) {

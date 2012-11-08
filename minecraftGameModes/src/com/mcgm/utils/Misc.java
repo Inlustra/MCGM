@@ -32,10 +32,15 @@ public class Misc {
     }
 
     public static World getMinigameWorld() {
-        if (Bukkit.getWorld(MINIGAME_WORLD) != null) {
-            Bukkit.getServer().createWorld(new WorldCreator(MINIGAME_WORLD));
-        }
         return Bukkit.getWorld(MINIGAME_WORLD);
+    }
+
+    public static boolean minigameWorldExists() {
+        return new File(Paths.serverDir.getPath() + "/" + MINIGAME_WORLD).exists();
+    }
+
+    public static void generateMinigameWorld() {
+        Bukkit.getServer().createWorld(new WorldCreator(MINIGAME_WORLD));
     }
 
     public static void removeMinigameWorld() {

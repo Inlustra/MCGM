@@ -214,15 +214,16 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             }
             gameToRun = highestVoted;
         }
+        if(!Misc.minigameWorldExists()) {
+            Misc.generateMinigameWorld();
+        }
         try {
-
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor(Plugin.class).newInstance(plugin));
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         final GameDefinition g = gameToRun;
         plugin.getServer().broadcastMessage("Starting " + g.getName());
-        Misc.getMinigameWorld();
         currentMinigame.onCountDown();
         int i = 6;
         while (i-- > 0) {
