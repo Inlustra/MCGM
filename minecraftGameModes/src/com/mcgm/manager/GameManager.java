@@ -12,6 +12,7 @@ import com.mcgm.game.provider.GameSource;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -212,7 +213,8 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             gameToRun = highestVoted;
         }
         try {
-            currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor(Plugin.class).newInstance(plugin));
+
+            currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor(Plugin.class, Player.class).newInstance(plugin, playing));
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
         }
