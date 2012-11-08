@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 gameTime = 125, description = "Stand still and shoot, dont turn back")
 public class TremblingBlocks extends Minigame {
     
-    Location area = new Location(Misc.mainWorld(), Misc.mainWorld().getSpawnLocation().getBlockX(), Misc.mainWorld().getSpawnLocation().getBlockY()+100, Misc.mainWorld().getSpawnLocation().getBlockZ());
+    Location area = new Location(Misc.getMainWorld(), Misc.getMainWorld().getSpawnLocation().getBlockX(), Misc.getMainWorld().getSpawnLocation().getBlockY()+100, Misc.getMainWorld().getSpawnLocation().getBlockZ());
 
     public TremblingBlocks(Plugin p, Player... playing) {
         super(p, TremblingBlocks.class.getAnnotation(GameInfo.class), playing);
