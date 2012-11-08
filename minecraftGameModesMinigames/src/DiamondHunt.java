@@ -25,11 +25,10 @@ import org.bukkit.inventory.PlayerInventory;
  * @author Thomas
  */
 @GameInfo(name = "Diamond Hunt", aliases = {"DH"}, pvp = false, authors = {"Pt"},
-gameTime = 65, description = "First to find the diamonds wins!")
+gameTime = -1, description = "First to find the diamonds wins!")
 public class DiamondHunt extends Minigame {
 
-    ArrayList<Location> diamondLocations = new ArrayList<> ();
-    
+    ArrayList<Location> diamondLocations = new ArrayList<>();
     Location cube = new Location(Misc.getMinigameWorld(), Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
             Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
             Misc.getMinigameWorld().getSpawnLocation().getBlockZ());
@@ -57,8 +56,8 @@ public class DiamondHunt extends Minigame {
                 Bukkit.broadcastMessage("Player " + ChatColor.GOLD + player.getName().toString() + ChatColor.WHITE + " wins!");
                 Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(this, false, player));
             }
-            
-            for (Location l : diamondLocations){
+
+            for (Location l : diamondLocations) {
                 player.playSound(l, Sound.ORB_PICKUP, 0.1f, 1);
             }
         }
@@ -86,8 +85,12 @@ public class DiamondHunt extends Minigame {
                         diamondOre++;
                     } else {
                         if ((dirt.getBlockY() > cube.getBlockY() - 5)) {
-                            Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
-                            dirtBlocks++;
+                            if (dirt.getBlockY() > cube.getBlockY() - 1) {
+                                Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.GRASS);
+                            } else {
+                                Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
+                                dirtBlocks++;
+                            }
                         } else {
                             if (Misc.getRandom(0, 1) == 1) {
                                 Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
