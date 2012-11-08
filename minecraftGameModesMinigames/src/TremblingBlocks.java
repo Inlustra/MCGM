@@ -3,10 +3,11 @@ import com.mcgm.Plugin;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerMoveEvent;
 
 
 @GameInfo(name = "Trembling Blocks", aliases = {"TB"}, pvp = true, authors = {"Pt"},
@@ -17,6 +18,12 @@ public class TremblingBlocks extends Minigame {
 
     public TremblingBlocks(Plugin p) {
         super(p, TremblingBlocks.class.getAnnotation(GameInfo.class));
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent e){
+        Location playerLoc = e.getPlayer().getLocation();
+        playerLoc.getBlock().setType(Material.AIR);
     }
 
     @Override
