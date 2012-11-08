@@ -83,7 +83,6 @@ public class ArrowArena extends Minigame {
 
     @Override
     public void onCountDown() {
-        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/MCEdit.schematic"), aboveGround);
     }
 
     @Override

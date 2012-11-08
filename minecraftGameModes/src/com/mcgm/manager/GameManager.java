@@ -50,8 +50,10 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         HandlerList.unregisterAll(currentMinigame);
         playersVoted.clear();
         for (Player p : currentMinigame.playing) {
+            p.teleport(Misc.getMainWorld().getSpawnLocation());
         }
         currentMinigame = null;
+        Misc.removeMinigameWorld();
         voteTime = 180;
     }
     private int voteTime = 180;
@@ -220,6 +222,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         }
         final GameDefinition g = gameToRun;
         plugin.getServer().broadcastMessage("Starting " + g.getName());
+        Misc.getMinigameWorld();
         currentMinigame.onCountDown();
         int i = 6;
         while (i-- > 0) {
