@@ -39,7 +39,7 @@ public abstract class Minigame implements Listener {
         teamAmount = f.teamAmount();
         gameTime = f.gameTime();
         this.playing = playing;
-        Misc.mainWorld().setPVP(pvpEnabled);
+        Misc.getMainWorld().setPVP(pvpEnabled);
         p.getServer().getPluginManager().registerEvents(this, p);
     }
 

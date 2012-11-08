@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 
 /**
  *
@@ -22,12 +23,20 @@ import org.bukkit.World;
  */
 public class Misc {
 
-    public static World mainWorld() {
+    public static World getMainWorld() {
         return Bukkit.getWorld("world");
     }
 
-    public static void undoLoadArea() {
-        //  es.getWorld().regenerate(null, es);
+    public static World getMinigameWorld() {
+        if (Bukkit.getWorld("minigameWorld") != null) {
+            Bukkit.getServer().createWorld(new WorldCreator("minigameWorld"));
+        }
+        return Bukkit.getWorld("minigameWorld");
+    }
+
+    public static void removeMinigameWorld() {
+        File f = new File(Paths.serverDir.getPath()+"/minigameWorld");
+        
     }
 
     public static void loadArea(final File file, final Vector origin) {

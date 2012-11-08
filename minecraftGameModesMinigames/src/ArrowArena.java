@@ -68,7 +68,7 @@ public class ArrowArena extends Minigame {
         for (Player player : playing) {
             Misc.outPrint("Teleporting Players");
             playersInGame.add(player);
-            player.teleport(new Location(Misc.mainWorld(), aboveGround.getX() + Misc.getRandom(-6, 6), 113, aboveGround.getZ() + Misc.getRandom(-6, 6)));
+            player.teleport(new Location(Misc.getMainWorld(), aboveGround.getX() + Misc.getRandom(-6, 6), 113, aboveGround.getZ() + Misc.getRandom(-6, 6)));
             PlayerInventory inventory = player.getInventory();
             inventory.clear();
             ItemStack bow = new ItemStack(Material.BOW, 1);

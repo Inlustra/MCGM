@@ -48,6 +48,8 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         currentMinigame.onEnd();
         HandlerList.unregisterAll(currentMinigame);
         playersVoted.clear();
+        for (Player p : currentMinigame.playing) {
+        }
         currentMinigame = null;
         voteTime = 180;
     }
@@ -99,8 +101,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         Command endgame = new Command("forceend", "Forces the end of the current minigame", "WORLDTP", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                World w = Bukkit.getWorld("generatedWorld");
-                ((Player) cs).teleport(w.getSpawnLocation());
+                Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(currentMinigame, false, new Player[]{}));
                 return true;
             }
         };
@@ -173,6 +174,8 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         plugin.getCommandManager().addCommand(list);
         plugin.getCommandManager().addCommand(vote);
         plugin.getCommandManager().addCommand(define);
+        plugin.getCommandManager().addCommand(play);
+        plugin.getCommandManager().addCommand(endgame);
         plugin.getCommandManager().addCommand(WorldGen);
         plugin.getCommandManager().addCommand(WorldTp);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);

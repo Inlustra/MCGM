@@ -17,20 +17,21 @@ public class Paths {
     public static final File sourceDir;
     public static final File compiledDir;
     public static final File schematicDir;
-    
+    public static final File serverDir;
+
     static {
-        sourceDir = new File(pluginsDir.getPath()+File.separator+"MCGMSources");
-        if(!sourceDir.exists()) {
+        sourceDir = new File(pluginsDir.getPath() + File.separator + "MCGMSources");
+        if (!sourceDir.exists()) {
             sourceDir.mkdirs();
         }
-        compiledDir = new File(pluginsDir.getPath()+File.separator+"MCGMCompiled");
-        if(!compiledDir.exists()) {
+        compiledDir = new File(pluginsDir.getPath() + File.separator + "MCGMCompiled");
+        if (!compiledDir.exists()) {
             compiledDir.mkdirs();
         }
-        schematicDir = new File(pluginsDir.getPath()+File.separator+"MCGMSchematics");
-        if(!schematicDir.exists()) {
+        schematicDir = new File(pluginsDir.getPath() + File.separator + "MCGMSchematics");
+        if (!schematicDir.exists()) {
             schematicDir.mkdirs();
         }
+        serverDir = new File(pluginsDir.getParent());
     }
-    
 }
