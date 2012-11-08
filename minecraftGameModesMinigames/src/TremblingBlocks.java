@@ -15,8 +15,8 @@ public class TremblingBlocks extends Minigame {
     
     Location area = new Location(Misc.getMainWorld(), Misc.getMainWorld().getSpawnLocation().getBlockX(), Misc.getMainWorld().getSpawnLocation().getBlockY()+100, Misc.getMainWorld().getSpawnLocation().getBlockZ());
 
-    public TremblingBlocks(Plugin p, Player... playing) {
-        super(p, TremblingBlocks.class.getAnnotation(GameInfo.class), playing);
+    public TremblingBlocks(Plugin p) {
+        super(p, TremblingBlocks.class.getAnnotation(GameInfo.class));
     }
 
     @Override

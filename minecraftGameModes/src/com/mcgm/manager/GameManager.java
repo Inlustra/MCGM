@@ -111,7 +111,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             public boolean execute(CommandSender cs, String string, String[] args) {
                 if (!playing.contains((Player) cs)) {
                     if (currentMinigame == null) {
-                        cs.sendMessage("Cast your vote!");
+                        cs.sendMessage("Cast your votes!");
                         cs.sendMessage(gameList);
                         playing.add((Player) cs);
                     } else {
@@ -214,7 +214,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         }
         try {
 
-            currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor(Plugin.class, Player.class).newInstance(plugin, playing));
+            currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor(Plugin.class).newInstance(plugin));
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -277,4 +277,10 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             player.teleport(x);
         }
     }
+
+    public ArrayList<Player> getPlaying() {
+        return playing;
+    }
+    
+    
 }

@@ -57,8 +57,8 @@ public class ArrowArena extends Minigame {
         }
     }
 
-    public ArrowArena(Plugin p, Player... playing) {
-        super(p, ArrowArena.class.getAnnotation(GameInfo.class), playing);
+    public ArrowArena(Plugin p) {
+        super(p, ArrowArena.class.getAnnotation(GameInfo.class));
         playersInGame = new ArrayList<>();
         aboveGround = new Vector(Misc.getRandom(-500, 500), 110, Misc.getRandom(-500, 500));
     }

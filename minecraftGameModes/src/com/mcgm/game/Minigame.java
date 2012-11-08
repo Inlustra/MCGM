@@ -6,7 +6,9 @@ package com.mcgm.game;
 
 import com.mcgm.Plugin;
 import com.mcgm.game.provider.GameInfo;
+import com.mcgm.manager.GameManager;
 import com.mcgm.utils.Misc;
+import java.util.ArrayList;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
@@ -26,9 +28,9 @@ public abstract class Minigame implements Listener {
     public int maxPlayers;
     public int gameTime;
     public Player[] winners;
-    public Player[] playing;
+    public ArrayList<Player> playing;
 
-    public Minigame(Plugin p, GameInfo f, Player... playing) {
+    public Minigame(Plugin p, GameInfo f) {
         this.p = p;
         name = f.name();
         version = f.version();
@@ -38,7 +40,7 @@ public abstract class Minigame implements Listener {
         maxPlayers = f.maxPlayers();
         teamAmount = f.teamAmount();
         gameTime = f.gameTime();
-        this.playing = playing;
+        this.playing = GameManager.getInstance(p).getPlaying();
         Misc.getMainWorld().setPVP(pvpEnabled);
         p.getServer().getPluginManager().registerEvents(this, p);
     }
