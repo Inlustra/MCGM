@@ -60,7 +60,7 @@ public class DiamondHunt extends Minigame {
     }
 
     @Override
-    public void onCountDown() {
+    public void generateGame() {
         for (int i = 0; i < 20; i++) {
             for (int x = 0; x < 20; x++) {
                 for (int a = 0; a < 20; a++) {
@@ -128,10 +128,6 @@ public class DiamondHunt extends Minigame {
     }
 
     @Override
-    public void generateGame() {
-    }
-
-    @Override
-    public void onLeaveArea() {
+    public void playerDisconnect(Player player) {
     }
 }

@@ -77,7 +77,7 @@ public class TremblingBlocks extends Minigame {
     }
 
     @Override
-    public void onCountDown() {
+    public void generateGame() {
         spawns = Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
                 Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
                 Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
@@ -109,10 +109,6 @@ public class TremblingBlocks extends Minigame {
     }
 
     @Override
-    public void generateGame() {
-    }
-
-    @Override
-    public void onLeaveArea() {
+    public void playerDisconnect(Player player) {
     }
 }

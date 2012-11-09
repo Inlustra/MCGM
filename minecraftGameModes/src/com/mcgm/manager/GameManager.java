@@ -27,6 +27,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  *
@@ -41,6 +42,16 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     private String gameList;
     private Plugin plugin;
     private ArrayList<Player> playing;
+    
+    @EventHandler
+    public void onPlayerDisconnect(PlayerQuitEvent e) {
+        if (currentMinigame != null) {
+            if (currentMinigame.getPlaying().contains(e.getPlayer())) {
+                currentMinigame.playerDisconnect(e.getPlayer());
+                currentMinigame.getPlaying().remove(e.getPlayer());
+            }
+        }
+    }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
@@ -254,7 +265,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         }
         final GameDefinition g = gameToRun;
         plugin.getServer().broadcastMessage("Starting " + g.getName());
-        currentMinigame.onCountDown();
+        currentMinigame.generateGame();
         int i = 6;
         while (i-- > 0) {
             try {

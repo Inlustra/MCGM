@@ -49,7 +49,13 @@ public abstract class Minigame implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    public abstract void onCountDown();
+    public void sendPlayingMessage(String s) {
+        for (Player p : playing) {
+            p.sendMessage(s);
+        }
+    }
+
+    public abstract void generateGame();
 
     public abstract void onTimeUp();
 
@@ -57,11 +63,9 @@ public abstract class Minigame implements Listener {
 
     public abstract void onEnd();
 
-    public abstract void generateGame();
-
-    public abstract void onLeaveArea();
-
     public abstract void minigameTick();
+    
+    public abstract void playerDisconnect(Player player);
 
     public String getName() {
         return name;

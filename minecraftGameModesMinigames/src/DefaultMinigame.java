@@ -24,7 +24,7 @@ public class DefaultMinigame extends Minigame {
     }
     
     @Override
-    public void onCountDown() {
+    public void generateGame() {
     }
 
     @Override
@@ -40,10 +40,6 @@ public class DefaultMinigame extends Minigame {
     }
 
     @Override
-    public void generateGame() {
-    }
-
-    @Override
-    public void onLeaveArea() {
+    public void playerDisconnect(Player player) {
     }
 }
