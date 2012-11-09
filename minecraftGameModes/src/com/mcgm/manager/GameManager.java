@@ -315,4 +315,8 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     public ArrayList<Player> getPlaying() {
         return playing;
     }
+
+    public Plugin getPlugin() {
+        return plugin;
+    }
 }
