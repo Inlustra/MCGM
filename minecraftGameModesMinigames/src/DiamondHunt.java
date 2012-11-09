@@ -38,10 +38,6 @@ public class DiamondHunt extends Minigame {
     int stoneBlocks = 0;
     int maxDiamonds = Misc.getRandom(4, 8);
 
-    public DiamondHunt(Plugin p) {
-        super(p, DiamondHunt.class.getAnnotation(GameInfo.class));
-    }
-
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
         if (e.getBlock().getType() == Material.DIAMOND_ORE) {

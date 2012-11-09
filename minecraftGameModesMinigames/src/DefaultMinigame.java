@@ -19,10 +19,6 @@ import org.bukkit.entity.Player;
 gameTime = 65, description = "desc")
 public class DefaultMinigame extends Minigame {
 
-    public DefaultMinigame(Plugin p) {
-        super(p, DefaultMinigame.class.getAnnotation(GameInfo.class));
-    }
-
     @Override
     public void minigameTick() {
     }
