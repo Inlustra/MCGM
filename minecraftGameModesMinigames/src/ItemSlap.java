@@ -1,5 +1,4 @@
 
-import com.mcgm.Plugin;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
@@ -13,8 +12,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.PlayerInventory;
 
 /*
@@ -34,7 +33,18 @@ public class ItemSlap extends Minigame {
     Location[] itemSpawns;
     HashMap<Player, Integer> playerPercent = new HashMap<>();
     HashMap<Player, Integer> playerLives = new HashMap<>();
-    HashMap<Player, Integer> playerLastHitter = new HashMap<>();
+    HashMap<Player, Player> playerLastHitter = new HashMap<>();
+    
+    @EventHandler
+    public void onPlayerDamageFromEntity(EntityDamageByEntityEvent event) {
+        if(event.getDamager() instanceof Player) {
+            if(((Player)event.getDamager()).getItemInHand().getType() == Material.BAKED_POTATO) {
+                event.getEntity().setVelocity(event.getDamager().getLocation().
+                        getDirection().multiply
+                        (1*(playerPercent.get((Player)event.getEntity())/100)));
+            }
+        }
+    }
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
@@ -46,6 +56,7 @@ public class ItemSlap extends Minigame {
             if (pHealth - damage <= 0) {
                 int LivesLeft = playerLives.get(p);
                 if (LivesLeft == 1) {
+                    playing.remove(p);
                 } else {
                     event.setCancelled(true);
                     p.teleport(playerSpawns[Misc.getRandom(0, playerSpawns.length-1)]);
@@ -83,7 +94,7 @@ public class ItemSlap extends Minigame {
         for (Player p : playing) {
             Location teleport = playerSpawns[Misc.getRandom(1, playerSpawns.length)];
             p.teleport(teleport);
-            playerPercent.put(p, 0);
+            playerPercent.put(p, 100);
             playerLives.put(p, 10);
             PlayerInventory inventory = p.getInventory();
             inventory.clear();
