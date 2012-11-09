@@ -6,7 +6,6 @@ import com.mcgm.utils.Paths;
 import com.sk89q.worldedit.Vector;
 import java.io.File;
 import java.util.HashMap;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -29,7 +29,7 @@ import org.bukkit.inventory.PlayerInventory;
  * @author Thomas
  */
 @GameInfo(name = "Item Slap", aliases = {"IS"}, pvp = false, authors = {"Tom"},
-gameTime = 65, description = "Much like Super smash brawl, in this game the idea is to knock your opponent off of the map! "
+gameTime = -1, description = "Much like Super smash brawl, in this game the idea is to knock your opponent off of the map! "
 + "Learn the different item effects!")
 public class ItemSlap extends Minigame {
 
@@ -40,13 +40,31 @@ public class ItemSlap extends Minigame {
     HashMap<Player, Player> playerLastHitter = new HashMap<>();
 
     @EventHandler
+    public void onPlayerPickupItem(PlayerPickupItemEvent e) {
+        int heal = (getHeal(e.getItem().getItemStack().getData().getItemType()));
+        int pp = playerPercent.get(e.getPlayer());
+        if (heal > 0 && pp > 20) {
+            e.getItem().remove();
+            e.setCancelled(true);
+            playerPercent.put(e.getPlayer(), pp - heal);
+        }
+        e.getPlayer().setLevel(pp);
+    }
+
+    @EventHandler
     public void onPlayerDamageFromEntity(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player) {
-            if (((Player) event.getDamager()).getItemInHand().getType() == Material.BAKED_POTATO) {
+            event.setCancelled(true);
+            Material playerMat = ((Player) event.getDamager()).getItemInHand().getType();
+            if (playerMat == Material.BAKED_POTATO) {
                 event.getEntity().setVelocity(event.getDamager().getLocation().
-                        getDirection().multiply(1 * (playerPercent.get((Player) event.getEntity()) / 100)));
+                        getDirection().multiply(0.1 + (itemDamage(playerMat) * (playerPercent.get((Player) event.getEntity()) / 100))));
             }
         }
+    }
+
+    public int getHeal(Material m) {
+        return 0;
     }
 
     public double itemDamage(Material m) {
@@ -58,6 +76,19 @@ public class ItemSlap extends Minigame {
         switch (rand) {
             case 29:
                 return Material.SULPHUR;
+            case 28:
+            case 27:
+                return Material.SNOW_BALL;
+            case 26:
+            case 25:
+            case 24:
+            case 23:
+            case 22:
+                return Material.GLOWSTONE_DUST;
+            case 21:
+            case 20:
+            case 19:
+                return Material.FLINT;
             default:
                 return Material.BAKED_POTATO;
         }
@@ -68,6 +99,8 @@ public class ItemSlap extends Minigame {
         Entity player = event.getEntity();
         if (player instanceof Player) {
             Player p = (Player) player;
+            p.setLevel(playerPercent.get(p));
+
             Integer damage = event.getDamage();
             Integer pHealth = p.getHealth();
             if (pHealth - damage <= 0) {
@@ -94,7 +127,6 @@ public class ItemSlap extends Minigame {
         if (itemSpawns.length != 0) {
             if (timeToItemSpawn == 0) {
                 Block location = (itemSpawns[Misc.getRandom(0, itemSpawns.length - 1)]).getBlock();
-
                 ItemStack item = new ItemStack(Material.MELON);
                 Misc.getMinigameWorld().dropItem(location.getRelative(BlockFace.UP).getLocation(), item);
                 timeToItemSpawn = Misc.getRandom(5, 16);
