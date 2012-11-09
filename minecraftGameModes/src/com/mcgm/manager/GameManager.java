@@ -245,7 +245,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         }
 
         try {
-            currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor(Plugin.class).newInstance(plugin));
+            currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
         }
