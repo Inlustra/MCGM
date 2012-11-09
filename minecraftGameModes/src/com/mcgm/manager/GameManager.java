@@ -34,7 +34,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * @author Tom
  */
 public class GameManager implements Listener, UncaughtExceptionHandler {
-
+    
     private Minigame currentMinigame;
     private static GameManager instance;
     private GameSource gameSrc;
@@ -45,20 +45,24 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent e) {
+        Player p = e.getPlayer();
+        if (playing.contains(p)) {
+            playing.remove(p);
+        }
         if (currentMinigame != null) {
-            if (currentMinigame.getPlaying().contains(e.getPlayer())) {
-                currentMinigame.playerDisconnect(e.getPlayer());
-                currentMinigame.getPlaying().remove(e.getPlayer());
+            if (currentMinigame.getPlaying().contains(p)) {
+                currentMinigame.playerDisconnect(p);
+                currentMinigame.getPlaying().remove(p);
             }
         }
     }
-
+    
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN + "! We currently have: " + ChatColor.GOLD + playing.size() + ChatColor.GREEN + " playing" + ChatColor.DARK_PURPLE + " Minigames!");
         e.getPlayer().teleport(Misc.MAIN_SPAWN);
     }
-
+    
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
@@ -76,7 +80,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         }
     }
     private int voteTime = 180;
-
+    
     public GameManager(final Plugin p) {
         playing = new ArrayList<>();
         plugin = p;
@@ -105,7 +109,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             }
         }, 0, 20L);
     }
-
+    
     public void loadManager() {
         Command endgame = new Command("forceend", "Forces the end of the current minigame", "WORLDTP", new ArrayList<String>()) {
             @Override
@@ -220,7 +224,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     List<Player> playersVoted = new ArrayList<>();
-
+    
     public void addVote(Player p, GameDefinition gdef) {
         if (!playersVoted.contains(p)) {
             playersVoted.add(p);
@@ -234,16 +238,16 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         } else {
             p.sendMessage("You've already voted!");
         }
-
+        
     }
-
+    
     public void performCountDown(final int time) {
         performCountDown(time, null);
     }
-
+    
     public void performCountDown(final int time, final GameDefinition game) {
         Misc.generateMinigameWorld();
-
+        
         GameDefinition gameToRun = game;
         if (game == null) {
             GameDefinition highestVoted = gameDefs.get(0);
@@ -254,7 +258,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             }
             gameToRun = highestVoted;
         }
-
+        
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
@@ -276,9 +280,9 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             }
         }
         currentMinigame.startGame();
-
+        
     }
-
+    
     public static GameManager getInstance(Plugin p) {
         synchronized (GameManager.class) {
             if (instance == null) {
@@ -287,7 +291,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         }
         return instance;
     }
-
+    
     public void loadGameList() {
         gameSrc = new GameSource(Paths.compiledDir);
         gameDefs = gameSrc.list();
@@ -298,7 +302,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         gameList = sb.toString();
         Misc.outPrint(gameList);
     }
-
+    
     public GameDefinition getGame(String name) {
         for (GameDefinition def : gameDefs) {
             for (String alias : def.aliases) {
@@ -312,7 +316,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         }
         return null;
     }
-
+    
     @Override
     public void uncaughtException(Thread t, Throwable e) {
         System.out.println("Uncaught exception: " + e.getMessage());
@@ -322,11 +326,11 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             player.teleport(x);
         }
     }
-
+    
     public ArrayList<Player> getPlaying() {
         return playing;
     }
-
+    
     public Plugin getPlugin() {
         return plugin;
     }

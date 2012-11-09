@@ -49,6 +49,20 @@ public class ItemSlap extends Minigame {
         }
     }
 
+    public double itemDamage(Material m) {
+        return 0;
+    }
+
+    public Material randomSpawn() {
+        int rand = Misc.getRandom(0, 30);
+        switch (rand) {
+            case 29:
+                return Material.SULPHUR;
+            default:
+                return Material.BAKED_POTATO;
+        }
+    }
+
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         Entity player = event.getEntity();
@@ -84,7 +98,6 @@ public class ItemSlap extends Minigame {
                 ItemStack item = new ItemStack(Material.MELON);
                 Misc.getMinigameWorld().dropItem(location.getRelative(BlockFace.UP).getLocation(), item);
                 timeToItemSpawn = Misc.getRandom(5, 16);
-                
             }
             timeToItemSpawn--;
         }
@@ -93,10 +106,13 @@ public class ItemSlap extends Minigame {
 
     @Override
     public void generateGame() {
-        playerSpawns = Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
+        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
+                Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
+                Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD);
+        playerSpawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
                 Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
                 Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
-        itemSpawns = Misc.getSpawnPoints(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
+        itemSpawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
                 Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
                 Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_WIRE);
     }
