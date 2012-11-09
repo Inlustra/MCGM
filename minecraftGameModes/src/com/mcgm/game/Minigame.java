@@ -32,8 +32,9 @@ public abstract class Minigame implements Listener {
     public int credits;
     public ArrayList<Player> playing;
 
-    public Minigame(Plugin p, GameInfo f) {
-        plugin = p;
+    protected Minigame() {
+        GameInfo f = this.getClass().getAnnotation(GameInfo.class);
+        plugin = GameManager.getInstance(null).getPlugin();
         name = f.name();
         credits = f.credits();
         version = f.version();
@@ -43,9 +44,9 @@ public abstract class Minigame implements Listener {
         maxPlayers = f.maxPlayers();
         teamAmount = f.teamAmount();
         gameTime = f.gameTime();
-        this.playing = GameManager.getInstance(p).getPlaying();
+        this.playing = GameManager.getInstance(plugin).getPlaying();
         Misc.getMainWorld().setPVP(pvpEnabled);
-        p.getServer().getPluginManager().registerEvents(this, p);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public abstract void onCountDown();
@@ -109,5 +110,4 @@ public abstract class Minigame implements Listener {
     public Plugin getPlugin() {
         return plugin;
     }
-
 }

@@ -74,19 +74,19 @@ public class Misc {
         }
     }
 
-    public static Location[] loadArea(final File file, final Vector origin, String world) {
+    public static Location[] loadArea(final File file, final Vector origin, String world, Material m) {
         try {
             EditSession es = new EditSession(BukkitUtil.getLocalWorld(Bukkit.getWorld(world)), 999999999);
             CuboidClipboard cc = SchematicFormat.MCEDIT.load(file);
             cc.paste(es, origin, false);
-            return getSpawnPoints(file, origin, world);
+            return getSpawnPoints(file, origin, world, m);
         } catch (MaxChangedBlocksException | IOException | DataException ex) {
             Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
 
-    public static Location[] getSpawnPoints(final File file, final Vector origin, String world) {
+    public static Location[] getSpawnPoints(final File file, final Vector origin, String world, Material m) {
         ArrayList<Location> l = new ArrayList<>();
         try {
             CuboidClipboard cc = SchematicFormat.MCEDIT.load(file);
