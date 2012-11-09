@@ -30,10 +30,6 @@ public class BowsAndTowers extends Minigame {
     
     HashMap<Player, Location> playerTowers = new HashMap<>();
     
-    public BowsAndTowers(Plugin p) {
-        super(p, BowsAndTowers.class.getAnnotation(GameInfo.class));
-    }
-    
     @EventHandler
     public void onEntityDeath(EntityDeathEvent e){
         Player killer = e.getEntity().getKiller();
