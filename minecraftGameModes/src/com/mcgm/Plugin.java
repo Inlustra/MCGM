@@ -6,6 +6,8 @@ package com.mcgm;
 
 import com.mcgm.manager.CommandManager;
 import com.mcgm.manager.GameManager;
+import org.bukkit.Bukkit;
+import org.bukkit.WorldCreator;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -28,6 +30,7 @@ public final class Plugin extends JavaPlugin {
         super.onEnable();
         GameManager.getInstance(this).loadManager();
         Thread.setDefaultUncaughtExceptionHandler(GameManager.getInstance(this));
+        Bukkit.getServer().createWorld(new WorldCreator("world"));
     }
     
     @Override

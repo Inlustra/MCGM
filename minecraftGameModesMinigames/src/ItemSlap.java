@@ -28,7 +28,7 @@ import org.bukkit.inventory.PlayerInventory;
  *
  * @author Thomas
  */
-@GameInfo(name = "Item Slap", aliases = {"IS"}, pvp = false, authors = {"Tom"},
+@GameInfo(name = "Item Slap", aliases = {"IS"}, pvp = true, authors = {"Tom"},
 gameTime = -1, description = "Much like Super smash brawl, in this game the idea is to knock your opponent off of the map! "
 + "Learn the different item effects!")
 public class ItemSlap extends Minigame {
@@ -41,10 +41,11 @@ public class ItemSlap extends Minigame {
 
     @EventHandler
     public void onPlayerPickupItem(PlayerPickupItemEvent e) {
-        int heal = (getHeal(e.getItem().getItemStack().getData().getItemType()));
+        int heal = (getHeal(e.getItem().getItemStack().getType()));
         int pp = playerPercent.get(e.getPlayer());
         if (heal > 0 && pp > 20) {
             e.getItem().remove();
+            sendPlayingMessage("Picked up healing item: " + heal);
             e.setCancelled(true);
             playerPercent.put(e.getPlayer(), pp - heal);
         }
@@ -59,16 +60,30 @@ public class ItemSlap extends Minigame {
             if (playerMat == Material.BAKED_POTATO) {
                 event.getEntity().setVelocity(event.getDamager().getLocation().
                         getDirection().multiply(0.1 + (itemDamage(playerMat) * (playerPercent.get((Player) event.getEntity()) / 100))));
+                playerPercent.put((Player) event.getEntity(), playerPercent.get((Player) event.getEntity()) + 20);
+                showPlayerPercent((Player) event.getEntity());
+                sendPlayingMessage("Knockback amount: " + (0.1 + (itemDamage(playerMat) * (playerPercent.get((Player) event.getEntity()) / 100))));
             }
         }
     }
 
     public int getHeal(Material m) {
-        return 0;
+        if (m == Material.MELON) {
+            return 10;
+        }
+        return -1;
     }
 
     public double itemDamage(Material m) {
-        return 0;
+        return 1;
+    }
+    
+    public double knockbackValue(Material m) {
+        return 1;
+    }
+
+    public void showPlayerPercent(Player m) {
+        m.setLevel(playerPercent.get(m));
     }
 
     public Material randomSpawn() {
@@ -109,6 +124,7 @@ public class ItemSlap extends Minigame {
                     playing.remove(p);
                 } else {
                     event.setCancelled(true);
+                    playerPercent.put((Player) event.getEntity(), 100);
                     p.teleport(playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
                     playerLives.put(p, LivesLeft -= 1);
                     p.getInventory().clear();
@@ -127,18 +143,18 @@ public class ItemSlap extends Minigame {
         if (itemSpawns.length != 0) {
             if (timeToItemSpawn == 0) {
                 Block location = (itemSpawns[Misc.getRandom(0, itemSpawns.length - 1)]).getBlock();
-                ItemStack item = new ItemStack(Material.MELON);
+                ItemStack item = new ItemStack(Material.BAKED_POTATO);
                 Misc.getMinigameWorld().dropItem(location.getRelative(BlockFace.UP).getLocation(), item);
                 timeToItemSpawn = Misc.getRandom(5, 16);
+                sendPlayingMessage("" + location.getRelative(BlockFace.UP).getLocation().toString());
             }
             timeToItemSpawn--;
         }
-
     }
 
     @Override
     public void generateGame() {
-        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
+        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
                 Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
                 Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD);
         playerSpawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
@@ -161,6 +177,7 @@ public class ItemSlap extends Minigame {
             playerPercent.put(p, 100);
             playerLives.put(p, 10);
             PlayerInventory inventory = p.getInventory();
+            inventory.addItem(new ItemStack(Material.BAKED_POTATO));
             inventory.clear();
         }
     }

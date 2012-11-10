@@ -44,8 +44,8 @@ public abstract class Minigame implements Listener {
         maxPlayers = f.maxPlayers();
         teamAmount = f.teamAmount();
         gameTime = f.gameTime();
-        this.playing = GameManager.getInstance(plugin).getPlaying();
-        Misc.getMainWorld().setPVP(pvpEnabled);
+        playing = GameManager.getInstance(plugin).getPlaying();
+        Misc.getMinigameWorld().setPVP(pvpEnabled);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 

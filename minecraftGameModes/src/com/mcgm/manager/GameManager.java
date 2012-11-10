@@ -20,7 +20,6 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -28,6 +27,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
@@ -60,20 +60,26 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN + "! We currently have: " + ChatColor.GOLD + playing.size() + ChatColor.GREEN + " playing" + ChatColor.DARK_PURPLE + " Minigames!");
+        e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN
+                + "! We currently have: " + ChatColor.GOLD + playing.size() + ChatColor.GREEN + " people playing" + ChatColor.DARK_PURPLE + " Minigames!");
+        e.getPlayer().teleport(Misc.MAIN_SPAWN);
+    }
+
+    @EventHandler
+    public void onPlayerLogin(PlayerLoginEvent e) {
     }
 
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
             currentMinigame.onEnd();
-            HandlerList.unregisterAll(currentMinigame);
-            playersVoted.clear();
             for (Player p : currentMinigame.playing) {
                 p.teleport(Misc.MAIN_SPAWN);
                 p.setHealth(20);
                 p.getInventory().clear();
             }
+            HandlerList.unregisterAll(currentMinigame);
+            playersVoted.clear();
             currentMinigame = null;
             Misc.removeMinigameWorld();
             voteTime = 180;
@@ -150,13 +156,17 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
                         p.sendMessage(ChatColor.GOLD + cs.getName() + ChatColor.GREEN + " is now playing!");
                     }
                     if (currentMinigame == null) {
-                        cs.sendMessage(ChatColor.GOLD + "Cast your votes!");
-                        cs.sendMessage(gameList);
-                        playing.add((Player) cs);
+                        if (playing.size() > 1) {
+                            cs.sendMessage(ChatColor.GOLD + "Cast your votes!");
+                            cs.sendMessage(gameList);
+                        } else {
+                            cs.sendMessage(ChatColor.GOLD + "§cPlease wait until there are at least§2 2 players§c playing for voting (Wait until level countdown starts)");
+                        }
                     } else {
                         cs.sendMessage(ChatColor.RED + "A game is currently in progress, please wait for the game to finish.");
-                        playing.add((Player) cs);
                     }
+                    playing.add((Player) cs);
+
                 } else {
                     cs.sendMessage(ChatColor.RED + "You're already playing!");
                 }
@@ -246,7 +256,6 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     }
 
     public void performCountDown(final int time, final GameDefinition game) {
-        Misc.generateMinigameWorld();
 
         GameDefinition gameToRun = game;
         if (game == null) {
@@ -258,6 +267,8 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             }
             gameToRun = highestVoted;
         }
+        plugin.getServer().broadcastMessage("Starting " + gameToRun.getName());
+        Misc.generateMinigameWorld();
 
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
@@ -268,7 +279,6 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             gdef.votes = 0;
         }
         final GameDefinition g = gameToRun;
-        plugin.getServer().broadcastMessage("Starting " + g.getName());
         currentMinigame.generateGame();
         int i = 6;
         while (i-- > 0) {
