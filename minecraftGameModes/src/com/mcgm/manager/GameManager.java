@@ -11,7 +11,7 @@ import com.mcgm.game.provider.GameDefinition;
 import com.mcgm.game.provider.GameSource;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
-import java.lang.Thread.UncaughtExceptionHandler;
+import com.mcgm.web.Post;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -27,14 +26,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  *
  * @author Tom
  */
-public class GameManager implements Listener, UncaughtExceptionHandler {
+public class GameManager implements Listener {
 
     private Minigame currentMinigame;
     private static GameManager instance;
@@ -47,7 +45,6 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent e) {
         Player p = e.getPlayer();
-        System.out.println("CALLED DC");
         if (playing.contains(p)) {
             playing.remove(p);
         }
@@ -55,7 +52,6 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             if (currentMinigame.getPlaying().contains(p)) {
                 currentMinigame.playerDisconnect(p);
                 currentMinigame.getPlaying().remove(p);
-                System.out.println("CALLED DC2");
                 if (currentMinigame.getPlaying().size() <= 1) {
                     Misc.cleanPlayer(p, true);
                     Bukkit.getPluginManager().callEvent(new GameEndEvent(currentMinigame, false, null));
@@ -68,19 +64,15 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     public void onPlayerJoin(final PlayerJoinEvent e) {
         e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN
                 + "! We currently have: " + ChatColor.GOLD + playing.size() + ChatColor.GREEN + " people playing" + ChatColor.DARK_PURPLE + " Minigames!");
-        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-            public void run() {
-                Misc.MAIN_SPAWN.getChunk().load();
-                e.getPlayer().teleport(Misc.MAIN_SPAWN);
-                e.getPlayer().getWorld().getEntities().remove(e.getPlayer().getEntityId());
+        Post p = new Post(Misc.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
+            @Override
+            public void serverResponse(String response) {
+                e.getPlayer().sendMessage(response);
             }
-        }, 20L);
-    }
+        };
+        PostManager.getInstance(plugin).postImmediate(p);
 
-    @EventHandler
-    public void onPlayerLogin(PlayerLoginEvent e) {
     }
-
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
@@ -129,6 +121,16 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     }
 
     public void loadManager() {
+        Command spawn = new Command("spawn", "Sends player to spawn", "SPAWN", new ArrayList<String>()) {
+            @Override
+            public boolean execute(CommandSender cs, String string, String[] args) {
+                for (int i = 0; i < plugin.getServer().getWorlds().size(); i++) {
+                    System.out.println(plugin.getServer().getWorlds().get(i).getName());
+                }
+                ((Player) cs).teleport(Misc.MAIN_SPAWN);
+                return true;
+            }
+        };
         Command endgame = new Command("forceend", "Forces the end of the current minigame", "WORLDTP", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
@@ -238,6 +240,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         };
         plugin.getCommandManager().addCommand(list);
         plugin.getCommandManager().addCommand(vote);
+        plugin.getCommandManager().addCommand(spawn);
         plugin.getCommandManager().addCommand(define);
         plugin.getCommandManager().addCommand(play);
         plugin.getCommandManager().addCommand(endgame);
@@ -352,16 +355,6 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             }
         }
         return null;
-    }
-
-    @Override
-    public void uncaughtException(Thread t, Throwable e) {
-        System.out.println("Uncaught exception: " + e.getMessage());
-        Location x = Bukkit.getWorld("world").getSpawnLocation();
-        currentMinigame = null;
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            player.teleport(x);
-        }
     }
 
     public ArrayList<Player> getPlaying() {

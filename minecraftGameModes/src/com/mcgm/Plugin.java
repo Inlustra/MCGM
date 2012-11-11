@@ -30,7 +30,6 @@ public final class Plugin extends JavaPlugin {
     public void onEnable() {
         super.onEnable();
         GameManager.getInstance(this).loadManager();
-        Thread.setDefaultUncaughtExceptionHandler(GameManager.getInstance(this));
         Bukkit.getServer().createWorld(new WorldCreator(Misc.MAIN_WORLD));
         if (Misc.minigameWorldExists()) {
             Bukkit.getServer().createWorld(new WorldCreator(Misc.MINIGAME_WORLD));

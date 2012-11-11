@@ -4,6 +4,7 @@
  */
 package com.mcgm.utils;
 
+import com.mcgm.manager.GameManager;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -11,9 +12,16 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.data.DataException;
 import com.sk89q.worldedit.schematic.SchematicFormat;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,7 +40,36 @@ public class Misc {
 
     public static String MAIN_WORLD = "world";
     public static String MINIGAME_WORLD = "minigameWorld";
+    public static String LogonURL = "http://virus78.chocolate.feralhosting.com/mcgmweb/testpost.php";
     public static Location MAIN_SPAWN = new Location(Misc.getMainWorld(), 94, 179, 163);
+
+    public static String convertStreamToString(InputStream is)
+            throws IOException {
+        /*
+         * To convert the InputStream to String we use the
+         * Reader.read(char[] buffer) method. We iterate until the
+         * Reader return -1 which means there's no more data to
+         * read. We use the StringWriter class to produce the string.
+         */
+        if (is != null) {
+            Writer writer = new StringWriter();
+
+            char[] buffer = new char[1024];
+            try {
+                Reader reader = new BufferedReader(
+                        new InputStreamReader(is, "UTF-8"));
+                int n;
+                while ((n = reader.read(buffer)) != -1) {
+                    writer.write(buffer, 0, n);
+                }
+            } finally {
+                is.close();
+            }
+            return writer.toString();
+        } else {
+            return "";
+        }
+    }
 
     public static void cleanPlayer(Player p, boolean teleport) {
         p.setHealth(20);
@@ -47,14 +84,15 @@ public class Misc {
     }
 
     public static World getMainWorld() {
-        return Bukkit.getWorld(MAIN_WORLD);
+        return GameManager.getInstance(null).getPlugin().getServer().getWorld(MAIN_WORLD);
     }
 
     public static World getMinigameWorld() {
         try {
-            return Bukkit.getWorld(MINIGAME_WORLD);
+            return GameManager.getInstance(null).getPlugin().getServer().getWorld(MINIGAME_WORLD);
         } catch (Exception e) {
-            Bukkit.getServer().createWorld(new WorldCreator(MINIGAME_WORLD));
+            e.printStackTrace();
+            GameManager.getInstance(null).getPlugin().getServer().createWorld(new WorldCreator(MINIGAME_WORLD));
             return Bukkit.getWorld(MINIGAME_WORLD);
         }
     }
@@ -68,11 +106,12 @@ public class Misc {
             removeMinigameWorld();
             WorldCreator c = new WorldCreator(MINIGAME_WORLD);
             if (seed != -1) {
-                Bukkit.getServer().createWorld(c.seed(seed));
+                GameManager.getInstance(null).getPlugin().getServer().createWorld(c.seed(seed));
             } else {
-                Bukkit.getServer().createWorld(c);
+                GameManager.getInstance(null).getPlugin().getServer().createWorld(c);
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -85,6 +124,7 @@ public class Misc {
             File f = new File(Paths.serverDir.getPath() + "/" + MINIGAME_WORLD);
             delete(f);
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
