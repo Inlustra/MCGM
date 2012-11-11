@@ -97,6 +97,7 @@ public class GameSource {
                     def.version = info.version();
                     def.description = info.description();
                     def.clazz = clazz;
+                    def.seed = info.seed();
                     def.maxPlayers = info.maxPlayers();
                     def.teamAmount = info.teamAmount();
                     def.PvP = info.pvp();

@@ -31,6 +31,7 @@ public abstract class Minigame implements Listener {
     public Player[] winners;
     public int credits;
     public ArrayList<Player> playing;
+    public Player[] startingPlayers;
 
     protected Minigame() {
         GameInfo f = this.getClass().getAnnotation(GameInfo.class);
@@ -45,6 +46,7 @@ public abstract class Minigame implements Listener {
         teamAmount = f.teamAmount();
         gameTime = f.gameTime();
         playing = GameManager.getInstance(plugin).getPlaying();
+        startingPlayers = playing.toArray(new Player[playing.size()]);
         Misc.getMinigameWorld().setPVP(pvpEnabled);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -64,7 +66,7 @@ public abstract class Minigame implements Listener {
     public abstract void onEnd();
 
     public abstract void minigameTick();
-    
+
     public abstract void playerDisconnect(Player player);
 
     public String getName() {

@@ -34,6 +34,18 @@ public class Misc {
     public static String MINIGAME_WORLD = "minigameWorld";
     public static Location MAIN_SPAWN = new Location(Misc.getMainWorld(), 94, 179, 163);
 
+    public static void cleanPlayer(Player p, boolean teleport) {
+        p.setHealth(20);
+        p.setFoodLevel(20);
+        p.getInventory().clear();
+        p.setWalkSpeed(0.2f);
+        p.setLevel(0);
+        p.setExp(0);
+        if (teleport) {
+            p.teleport(Misc.MAIN_SPAWN);
+        }
+    }
+
     public static World getMainWorld() {
         return Bukkit.getWorld(MAIN_WORLD);
     }
@@ -51,10 +63,15 @@ public class Misc {
         return new File(Paths.serverDir.getPath() + "/" + MINIGAME_WORLD).exists();
     }
 
-    public static void generateMinigameWorld() {
+    public static void generateMinigameWorld(long seed) {
         try {
             removeMinigameWorld();
-            Bukkit.getServer().createWorld(new WorldCreator(MINIGAME_WORLD));
+            WorldCreator c = new WorldCreator(MINIGAME_WORLD);
+            if (seed != -1) {
+                Bukkit.getServer().createWorld(c.seed(seed));
+            } else {
+                Bukkit.getServer().createWorld(c);
+            }
         } catch (Exception e) {
         }
     }

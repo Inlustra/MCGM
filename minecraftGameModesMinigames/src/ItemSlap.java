@@ -1,11 +1,15 @@
 
 import com.mcgm.game.Minigame;
+import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameInfo;
+import com.mcgm.manager.GameManager;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import com.sk89q.worldedit.Vector;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -38,18 +43,108 @@ public class ItemSlap extends Minigame {
     HashMap<Player, Integer> playerPercent = new HashMap<>();
     HashMap<Player, Integer> playerLives = new HashMap<>();
     HashMap<Player, Player> playerLastHitter = new HashMap<>();
+    public Material[] usedItems = new Material[]{Material.BAKED_POTATO, Material.GRILLED_PORK,
+        Material.APPLE, Material.BREAD,
+        Material.GOLDEN_APPLE, Material.GOLDEN_CARROT,
+        Material.IRON_SWORD, Material.ANVIL,
+        Material.RAW_FISH, Material.FEATHER};
+    //0 = HEAL AMOUNT FOR ITEM
+    //1 = ITEM DAMAGE
+    //2 = KNOCKBACK VALUE
+    //3 = KNOCKBACK PROTECTION
+    //4 = RUN SPEED
+    //5 = SPAWN PROBABILITY
+
+    public double[] itemDetails(Material m) {
+        switch (m) {
+            //HEALS
+            case BAKED_POTATO:
+                return new double[]{50, -1, -1, -1, -1, 10};
+            case GRILLED_PORK:
+                return new double[]{100, -1, -1, -1, -1, 5};
+            case APPLE:
+                return new double[]{80, -1, -1, -1, -1, 5};
+            case BREAD:
+                return new double[]{90, -1, -1, -1, -1, 5};
+            case GOLDEN_APPLE:
+                return new double[]{900, -1, -1, -1, -1, 1};
+            case GOLDEN_CARROT:
+                return new double[]{900, -1, -1, -1, -1, 1};
+            //NonHealing
+            case AIR:
+                return new double[]{-1, 10, 1, 0, 0.2, 0};
+            case IRON_SWORD:
+                return new double[]{-1, 25, 1.2, 0, 0.2, 6};
+            case ANVIL:
+                return new double[]{-1, 100, 0.3, 0.8, 0.05, 2};
+            case RAW_FISH:
+                return new double[]{-1, 40, 0.6, 0, 0.2, 6};
+            case FEATHER:
+                return new double[]{-1, 5, 2, -1, 0.3, 2};
+            default:
+                return null;
+        }
+    }
+    boolean hasStarted = false;
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent e) {
+        if (hasStarted) {
+            for (Player p : playing) {
+                if (p.getLocation().getY() < 130 && p.getVelocity().getY() == 0) {
+                    int LivesLeft = playerLives.get(p);
+                    if (LivesLeft == 1) {
+                        playing.remove(p);
+                        if (playing.size() == 1) {
+                            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, playing.get(0)));
+                        }
+                    } else {
+                        playerPercent.put(p, 100);
+                        showPlayerPercent(p);
+                        p.teleport(playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
+                        playerLives.put(p, LivesLeft -= 1);
+                        p.getInventory().clear();
+                        p.setHealth(20);
+                        p.setFoodLevel(20);
+                        p.sendMessage(ChatColor.RED + "You Died, You have " + ChatColor.GREEN + playerLives.get(p) + ChatColor.RED + " Lives left!");
+                    }
+                }
+            }
+        }
+    }
 
     @EventHandler
     public void onPlayerPickupItem(PlayerPickupItemEvent e) {
-        int heal = (getHeal(e.getItem().getItemStack().getType()));
-        int pp = playerPercent.get(e.getPlayer());
-        if (heal > 0 && pp > 20) {
-            e.getItem().remove();
-            sendPlayingMessage("Picked up healing item: " + heal);
-            e.setCancelled(true);
-            playerPercent.put(e.getPlayer(), pp - heal);
+        boolean canHandle = false;
+        for (Material m : usedItems) {
+            if (m == e.getItem().getItemStack().getType()) {
+                canHandle = true;
+                break;
+            }
+
         }
-        e.getPlayer().setLevel(pp);
+        if (canHandle) {
+            int heal = (int) itemDetails(e.getItem().getItemStack().getType())[0];
+            int pp = playerPercent.get(e.getPlayer());
+            boolean toCancel = true;
+            if (e.getPlayer().getItemInHand().getType() == Material.AIR && heal < 0) {
+                e.getItem().remove();
+                e.getPlayer().getInventory().clear();
+                e.getPlayer().setWalkSpeed((float) itemDetails(e.getItem().getItemStack().getType())[4]);
+                toCancel = false;
+            }
+            if (heal != -1 && pp > 100) {
+                e.getItem().remove();
+                sendPlayingMessage("Picked up healing item: " + heal);
+                pp = playerPercent.put(e.getPlayer(), pp - heal);
+                toCancel = true;
+            }
+            if (pp < 100) {
+                pp = playerPercent.put(e.getPlayer(), 100);
+            }
+            e.getPlayer().setLevel(pp);
+            e.setCancelled(toCancel);
+        }
     }
 
     @EventHandler
@@ -57,56 +152,27 @@ public class ItemSlap extends Minigame {
         if (event.getDamager() instanceof Player) {
             event.setCancelled(true);
             Material playerMat = ((Player) event.getDamager()).getItemInHand().getType();
-            if (playerMat == Material.BAKED_POTATO) {
-                event.getEntity().setVelocity(event.getDamager().getLocation().
-                        getDirection().multiply(0.1 + (itemDamage(playerMat) * (playerPercent.get((Player) event.getEntity()) / 100))));
-                playerPercent.put((Player) event.getEntity(), playerPercent.get((Player) event.getEntity()) + 20);
-                showPlayerPercent((Player) event.getEntity());
-                sendPlayingMessage("Knockback amount: " + (0.1 + (itemDamage(playerMat) * (playerPercent.get((Player) event.getEntity()) / 100))));
+            double knockbackProtection = itemDetails(((Player) event.getEntity()).getItemInHand().getType())[3];
+            double totalKnockback = (itemDetails(playerMat)[2] - (knockbackProtection));
+            if (totalKnockback < 0) {
+                totalKnockback = 0;
             }
+            double knockback = 0.1 + (totalKnockback * (playerPercent.get((Player) event.getEntity()) / 100));
+            event.getEntity().setVelocity(event.getDamager().getLocation().
+                    getDirection().multiply(knockback));
+            int percent = playerPercent.get((Player) event.getEntity()) + (int) itemDetails(playerMat)[1];
+            playerPercent.put((Player) event.getEntity(), percent);
+            showPlayerPercent((Player) event.getEntity());
         }
     }
+    public ArrayList<Material> itemProbabilityList;
 
-    public int getHeal(Material m) {
-        if (m == Material.MELON) {
-            return 10;
-        }
-        return -1;
-    }
-
-    public double itemDamage(Material m) {
-        return 1;
-    }
-    
-    public double knockbackValue(Material m) {
-        return 1;
+    public Material randomSpawn() {
+        return itemProbabilityList.get(Misc.getRandom(0, itemProbabilityList.size() - 1));
     }
 
     public void showPlayerPercent(Player m) {
         m.setLevel(playerPercent.get(m));
-    }
-
-    public Material randomSpawn() {
-        int rand = Misc.getRandom(0, 30);
-        switch (rand) {
-            case 29:
-                return Material.SULPHUR;
-            case 28:
-            case 27:
-                return Material.SNOW_BALL;
-            case 26:
-            case 25:
-            case 24:
-            case 23:
-            case 22:
-                return Material.GLOWSTONE_DUST;
-            case 21:
-            case 20:
-            case 19:
-                return Material.FLINT;
-            default:
-                return Material.BAKED_POTATO;
-        }
     }
 
     @EventHandler
@@ -122,9 +188,13 @@ public class ItemSlap extends Minigame {
                 int LivesLeft = playerLives.get(p);
                 if (LivesLeft == 1) {
                     playing.remove(p);
+                    if (playing.size() == 1) {
+                        Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, playing.get(0)));
+                    }
                 } else {
                     event.setCancelled(true);
                     playerPercent.put((Player) event.getEntity(), 100);
+                    showPlayerPercent(p);
                     p.teleport(playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
                     playerLives.put(p, LivesLeft -= 1);
                     p.getInventory().clear();
@@ -143,10 +213,9 @@ public class ItemSlap extends Minigame {
         if (itemSpawns.length != 0) {
             if (timeToItemSpawn == 0) {
                 Block location = (itemSpawns[Misc.getRandom(0, itemSpawns.length - 1)]).getBlock();
-                ItemStack item = new ItemStack(Material.BAKED_POTATO);
+                ItemStack item = new ItemStack(randomSpawn());
                 Misc.getMinigameWorld().dropItem(location.getRelative(BlockFace.UP).getLocation(), item);
-                timeToItemSpawn = Misc.getRandom(5, 16);
-                sendPlayingMessage("" + location.getRelative(BlockFace.UP).getLocation().toString());
+                timeToItemSpawn = Misc.getRandom(1, 5);
             }
             timeToItemSpawn--;
         }
@@ -163,6 +232,16 @@ public class ItemSlap extends Minigame {
         itemSpawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
                 Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
                 Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_WIRE);
+        if (itemProbabilityList == null) {
+            itemProbabilityList = new ArrayList<>();
+            for (Material m : usedItems) {
+                for (int i = 0; i < itemDetails(m)[5]; i++) {
+                    itemProbabilityList.add(m);
+                    System.out.println("" + m);
+                }
+
+            }
+        }
     }
 
     @Override
@@ -177,16 +256,20 @@ public class ItemSlap extends Minigame {
             playerPercent.put(p, 100);
             playerLives.put(p, 10);
             PlayerInventory inventory = p.getInventory();
-            inventory.addItem(new ItemStack(Material.BAKED_POTATO));
             inventory.clear();
         }
+        hasStarted = true;
     }
 
     @Override
     public void onEnd() {
+        for (Player p : GameManager.getInstance(plugin).getPlaying()) {
+            p.setWalkSpeed(0.2f);
+        }
     }
 
     @Override
     public void playerDisconnect(Player player) {
+        player.setWalkSpeed(0.2f);
     }
 }

@@ -47,6 +47,7 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent e) {
         Player p = e.getPlayer();
+        System.out.println("CALLED DC");
         if (playing.contains(p)) {
             playing.remove(p);
         }
@@ -54,15 +55,26 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             if (currentMinigame.getPlaying().contains(p)) {
                 currentMinigame.playerDisconnect(p);
                 currentMinigame.getPlaying().remove(p);
+                System.out.println("CALLED DC2");
+                if (currentMinigame.getPlaying().size() <= 1) {
+                    Misc.cleanPlayer(p, true);
+                    Bukkit.getPluginManager().callEvent(new GameEndEvent(currentMinigame, false, null));
+                }
             }
         }
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e) {
+    public void onPlayerJoin(final PlayerJoinEvent e) {
         e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN
                 + "! We currently have: " + ChatColor.GOLD + playing.size() + ChatColor.GREEN + " people playing" + ChatColor.DARK_PURPLE + " Minigames!");
-        e.getPlayer().teleport(Misc.MAIN_SPAWN);
+        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+            public void run() {
+                Misc.MAIN_SPAWN.getChunk().load();
+                e.getPlayer().teleport(Misc.MAIN_SPAWN);
+                e.getPlayer().getWorld().getEntities().remove(e.getPlayer().getEntityId());
+            }
+        }, 20L);
     }
 
     @EventHandler
@@ -72,13 +84,13 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
-            currentMinigame.onEnd();
-            for (Player p : currentMinigame.playing) {
-                p.teleport(Misc.MAIN_SPAWN);
-                p.setHealth(20);
-                p.getInventory().clear();
+            for (Player p : currentMinigame.startingPlayers) {
+                if (!p.isOnline()) {
+                    Misc.cleanPlayer(p, true);
+                }
             }
             HandlerList.unregisterAll(currentMinigame);
+            currentMinigame.onEnd();
             playersVoted.clear();
             currentMinigame = null;
             Misc.removeMinigameWorld();
@@ -267,8 +279,11 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
             }
             gameToRun = highestVoted;
         }
-        plugin.getServer().broadcastMessage("Starting " + gameToRun.getName());
-        Misc.generateMinigameWorld();
+        for (Player p : playing) {
+            p.sendMessage(ChatColor.WHITE + "A game has been chosen!");
+            p.sendMessage(ChatColor.WHITE + "Prepare for:" + ChatColor.AQUA + gameToRun.getName());
+        }
+        Misc.generateMinigameWorld(gameToRun.seed);
 
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
@@ -280,17 +295,29 @@ public class GameManager implements Listener, UncaughtExceptionHandler {
         }
         final GameDefinition g = gameToRun;
         currentMinigame.generateGame();
-        int i = 6;
-        while (i-- > 0) {
-            try {
-                Thread.sleep(1000);
-                plugin.getServer().broadcastMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "" + i + "...");
-            } catch (InterruptedException ex) {
-                Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        currentMinigame.startGame();
+        setTaskId(Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+            int i = 6;
 
+            @Override
+            public void run() {
+                if (i > 0) {
+                    i--;
+                    currentMinigame.sendPlayingMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "" + i + "...");
+                } else {
+                    currentMinigame.startGame();
+                    cancel();
+                }
+            }
+        }, 0, 20L));
+    }
+    private int id;
+
+    public void setTaskId(int id) {
+        this.id = id;
+    }
+
+    private void cancel() {
+        Bukkit.getScheduler().cancelTask(id);
     }
 
     public static GameManager getInstance(Plugin p) {
