@@ -1,17 +1,22 @@
 
-import com.mcgm.Plugin;
 import com.mcgm.game.Minigame;
+import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
-import java.util.ArrayList;
 import java.util.HashMap;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 /*
  * To change this template, choose Tools | Templates
@@ -22,22 +27,56 @@ import org.bukkit.event.entity.EntityDeathEvent;
  * @author Thomas
  */
 @GameInfo(name = "Bows and Towers", aliases = {"BAT"}, pvp = false, authors = {"Pt"},
-gameTime = 65, description = "desc", seed="Temple")
+gameTime = 65, description = "desc", seed = "-1793484691")
 public class BowsAndTowers extends Minigame {
 
     Location spawn = plugin.getWorldManager().getMinigameWorld().getSpawnLocation();
-    int noOfPlayers = playing.size();
     HashMap<Player, Location> playerTowers = new HashMap<>();
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent e) {
+        if (e.getPlayer().getWorld() == plugin.getWorldManager().getMinigameWorld()) {
+            Location playerLoc = e.getPlayer().getLocation();
+            if (playerLoc.getY() > 100) {
+                Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(this, false, e.getPlayer()));
+            }
+        }
+    }
+    int x = 0, y = 0, z = 0, xAvg = 0, yAvg = 0, zAvg = 0;
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent e) {
         Player killer = e.getEntity().getKiller();
-        Block killerBlock = killer.getLocation().getBlock();
-        killerBlock.getRelative(BlockFace.UP).setType(Material.STONE);
+        playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.BRICK, true).getLocation());
+        makeLayer(playerTowers.get(killer).getBlock(), Material.FENCE, false);
+        killer.playSound(killer.getLocation(), Sound.BURP, 1f, 1f);
+        Location teleportLocation = new Location(playerTowers.get(killer).getWorld(), playerTowers.get(killer).getX() + 0.5, playerTowers.get(killer).getY(), playerTowers.get(killer).getZ() + 0.5, killer.getLocation().getYaw(), killer.getLocation().getPitch());
+        killer.teleport(teleportLocation);
+        
+        for (Player p : playing) {
+            x += p.getLocation().getX();
+            y += p.getLocation().getY();
+            z += p.getLocation().getZ();
+        }
+
+        xAvg = x / playing.size();
+        yAvg = y / playing.size();
+        zAvg = z / playing.size();
     }
+    int timer = 0;
 
     @Override
     public void minigameTick() {
+        timer++;
+        if (timer == 5) {
+            for (Player p : playing) {
+                for (int i = 0; i < playing.size() * 5; i++) {
+                    Location mobs = new Location(plugin.getWorldManager().getMinigameWorld(), xAvg + Misc.getRandom(-10, 10), yAvg + Misc.getRandom(5, 10), zAvg - Misc.getRandom(-10, 10));
+                    this.plugin.getWorldManager().getMinigameWorld().spawnEntity(mobs, EntityType.CHICKEN);
+                }
+            }
+            timer = 0;
+        }
     }
 
     @Override
@@ -50,55 +89,51 @@ public class BowsAndTowers extends Minigame {
 
     @Override
     public void startGame() {
-        ArrayList<Location> playerTowersTemp = new ArrayList<>();
-
-        for (int i = 0; i < playing.size(); i++) {
-            Player p = playing.get(i);
-            Location newTower = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(1, 5) + i * 2, spawn.getBlockY(), spawn.getBlockZ() + Misc.getRandom(1, 5) + i * 2);
-            if (!playerTowersTemp.contains(newTower)) {
-                playerTowersTemp.add(newTower);
-                playerTowers.put(p, newTower);
-            } else {
-                i--;
-            }
-        }
-
-        for (Location tower : playerTowersTemp) {
-            for (int i = 0; i < 3; i++) {
-                for (int x = 0; x < 3; x++) {
-                    for (int a = 0; a < 130; a++) {
-
-                        Location block = new Location(tower.getWorld(), tower.getBlockX() + i, tower.getBlockY() + a, tower.getBlockZ() - x);
-                        block.getBlock().setType(Material.AIR);
-
-                    }
-                }
-            }
-            for (int i = 0; i < 3; i++) {
-                for (int x = 0; x < 3; x++) {
-                    for (int a = 0; a < 10; a++) {
-
-                        Location block = new Location(tower.getWorld(), tower.getBlockX() + i, tower.getBlockY() + a, tower.getBlockZ() - x);
-                        block.getBlock().setType(Material.STONE);
-
-                    }
-                }
-            }
-        }
-
         for (Player p : playing) {
-            Location spawnPlayer = new Location(playerTowers.get(p).getWorld(), playerTowers.get(p).getBlockX() + 1, playerTowers.get(p).getBlockY() + 10, playerTowers.get(p).getBlockZ() - 1);
-            p.teleport(spawnPlayer);
-            p.getLocation().getBlock().getRelative(BlockFace.NORTH).setType(Material.FENCE);
-            p.getLocation().getBlock().getRelative(BlockFace.NORTH_EAST).setType(Material.FENCE);
-            p.getLocation().getBlock().getRelative(BlockFace.NORTH_WEST).setType(Material.FENCE);
-            p.getLocation().getBlock().getRelative(BlockFace.SOUTH).setType(Material.FENCE);
-            p.getLocation().getBlock().getRelative(BlockFace.SOUTH_EAST).setType(Material.FENCE);
-            p.getLocation().getBlock().getRelative(BlockFace.SOUTH_WEST).setType(Material.FENCE);
-            p.getLocation().getBlock().getRelative(BlockFace.EAST).setType(Material.FENCE);
-            p.getLocation().getBlock().getRelative(BlockFace.WEST).setType(Material.FENCE);
-        }
+            Location tower = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY(), spawn.getBlockZ() + Misc.getRandom(-10, 10));
+            playerTowers.put(p, tower);
 
+            Block towerCore = playerTowers.get(p).getBlock();
+            Block newTowerCore = makeLayer(towerCore, Material.BRICK, true);
+            playerTowers.put(p, newTowerCore.getLocation());
+
+            for (int i = 0; i < 10; i++) {
+                playerTowers.put(p, makeLayer(playerTowers.get(p).getBlock(), Material.BRICK, true).getLocation());
+                if (i == 9) {
+                    makeLayer(playerTowers.get(p).getBlock(), Material.FENCE, false);
+                }
+            }
+            Location teleportLocation = new Location(spawn.getWorld(), towerCore.getX() + 0.5, towerCore.getY(), towerCore.getZ() + 0.5);
+            p.teleport(teleportLocation);
+
+            PlayerInventory inventory = p.getInventory();
+            inventory.clear();
+            ItemStack bow = new ItemStack(Material.BOW, 1);
+            ItemStack arrow = new ItemStack(Material.ARROW, 64);
+            ItemStack arrow2 = new ItemStack(Material.ARROW, 64);
+            ItemStack arrow3 = new ItemStack(Material.ARROW, 64);
+            ItemStack arrow4 = new ItemStack(Material.ARROW, 64);
+            inventory.addItem(bow, arrow, arrow2, arrow3, arrow4);
+            
+            for(int foo=0 ; foo<20; foo++){
+            Location initalChickens = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY()+20, spawn.getBlockZ() + Misc.getRandom(-10, 10));
+            plugin.getWorldManager().getMinigameWorld().spawnEntity(initalChickens, EntityType.CHICKEN);
+            }
+            
+        }
+    }
+
+    public Block makeLayer(Block towerCore, Material type, boolean middle) {
+        towerCore.setType(middle ? type : Material.AIR);
+        towerCore.getRelative(BlockFace.NORTH).setType(type);
+        towerCore.getRelative(BlockFace.SOUTH).setType(type);
+        towerCore.getRelative(BlockFace.EAST).setType(type);
+        towerCore.getRelative(BlockFace.WEST).setType(type);
+        towerCore.getRelative(BlockFace.NORTH_EAST).setType(type);
+        towerCore.getRelative(BlockFace.NORTH_WEST).setType(type);
+        towerCore.getRelative(BlockFace.SOUTH_EAST).setType(type);
+        towerCore.getRelative(BlockFace.SOUTH_WEST).setType(type);
+        return towerCore.getRelative(BlockFace.UP);
     }
 
     @Override
