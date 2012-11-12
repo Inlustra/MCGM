@@ -22,7 +22,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
  * @author Thomas
  */
 @GameInfo(name = "Bows and Towers", aliases = {"BAT"}, pvp = false, authors = {"Pt"},
-gameTime = 65, description = "desc")
+gameTime = 65, description = "desc", seed="Temple")
 public class BowsAndTowers extends Minigame {
 
     Location spawn = plugin.getWorldManager().getMinigameWorld().getSpawnLocation();
