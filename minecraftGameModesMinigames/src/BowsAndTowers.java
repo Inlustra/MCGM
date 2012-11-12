@@ -47,21 +47,23 @@ public class BowsAndTowers extends Minigame {
     @EventHandler
     public void onEntityDeath(EntityDeathEvent e) {
         Player killer = e.getEntity().getKiller();
-        playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.BRICK, true).getLocation());
-        makeLayer(playerTowers.get(killer).getBlock(), Material.FENCE, false);
-        killer.playSound(killer.getLocation(), Sound.BURP, 1f, 1f);
-        Location teleportLocation = new Location(playerTowers.get(killer).getWorld(), playerTowers.get(killer).getX() + 0.5, playerTowers.get(killer).getY(), playerTowers.get(killer).getZ() + 0.5, killer.getLocation().getYaw(), killer.getLocation().getPitch());
-        killer.teleport(teleportLocation);
-        
-        for (Player p : playing) {
-            x += p.getLocation().getX();
-            y += p.getLocation().getY();
-            z += p.getLocation().getZ();
-        }
+        if (e instanceof Player) {
+            playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.BRICK, true).getLocation());
+            makeLayer(playerTowers.get(killer).getBlock(), Material.FENCE, false);
+            killer.playSound(killer.getLocation(), Sound.BURP, 1f, 1f);
+            Location teleportLocation = new Location(playerTowers.get(killer).getWorld(), playerTowers.get(killer).getX() + 0.5, playerTowers.get(killer).getY(), playerTowers.get(killer).getZ() + 0.5, killer.getLocation().getYaw(), killer.getLocation().getPitch());
+            killer.teleport(teleportLocation);
 
-        xAvg = x / playing.size();
-        yAvg = y / playing.size();
-        zAvg = z / playing.size();
+            for (Player p : playing) {
+                x += p.getLocation().getX();
+                y += p.getLocation().getY();
+                z += p.getLocation().getZ();
+            }
+
+            xAvg = x / playing.size();
+            yAvg = y / playing.size();
+            zAvg = z / playing.size();
+        }
     }
     int timer = 0;
 
@@ -114,12 +116,12 @@ public class BowsAndTowers extends Minigame {
             ItemStack arrow3 = new ItemStack(Material.ARROW, 64);
             ItemStack arrow4 = new ItemStack(Material.ARROW, 64);
             inventory.addItem(bow, arrow, arrow2, arrow3, arrow4);
-            
-            for(int foo=0 ; foo<20; foo++){
-            Location initalChickens = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY()+20, spawn.getBlockZ() + Misc.getRandom(-10, 10));
-            plugin.getWorldManager().getMinigameWorld().spawnEntity(initalChickens, EntityType.CHICKEN);
+
+            for (int foo = 0; foo < 20; foo++) {
+                Location initalChickens = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY() + 20, spawn.getBlockZ() + Misc.getRandom(-10, 10));
+                plugin.getWorldManager().getMinigameWorld().spawnEntity(initalChickens, EntityType.CHICKEN);
             }
-            
+
         }
     }
 
