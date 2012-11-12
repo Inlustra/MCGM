@@ -34,5 +34,5 @@ public @interface GameInfo {
 
     int credits() default 50;
 
-    long seed() default -1;
+    String seed() default "";
 }

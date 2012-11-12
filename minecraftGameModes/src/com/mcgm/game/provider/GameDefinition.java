@@ -16,7 +16,7 @@ public class GameDefinition implements Comparable<GameDefinition> {
     public boolean teamBased;
     public int teamAmount;
     public boolean PvP;
-    public long seed;
+    public String seed;
     public int votes = 0;
     public GameSource source;
     public Class clazz;
@@ -37,7 +37,7 @@ public class GameDefinition implements Comparable<GameDefinition> {
         return maxPlayers;
     }
 
-    public long getSeed() {
+    public String getSeed() {
         return seed;
     }
 

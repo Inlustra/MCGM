@@ -96,6 +96,7 @@ public class WorldManager {
             Misc.outPrintWarning("Unable to regenerate world: " + name + " as it wasn't loaded");
             return false;
         }
+        Bukkit.unloadWorld(name, false);
         WorldCreator c = WorldCreator.name(name);
         List<Player> ps = world.getPlayers();
         

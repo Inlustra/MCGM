@@ -292,7 +292,7 @@ public class GameManager implements Listener {
             p.sendMessage(ChatColor.WHITE + "Prepare for: " + ChatColor.AQUA + gameToRun.getName());
         }
 
-        plugin.getWorldManager().regenWorld(Misc.MINIGAME_WORLD, true, gameToRun.getSeed() == -1 ? true : false, "" + gameToRun.getSeed());
+        plugin.getWorldManager().regenWorld(Misc.MINIGAME_WORLD, true, "".equals(gameToRun.getSeed()) ? true : false, "" + gameToRun.getSeed());
 
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
