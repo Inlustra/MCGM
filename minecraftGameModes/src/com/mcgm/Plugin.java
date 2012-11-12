@@ -10,6 +10,8 @@ import com.mcgm.manager.PostManager;
 import com.mcgm.manager.WorldManager;
 import com.mcgm.utils.Misc;
 import org.bukkit.plugin.java.JavaPlugin;
+import pgDev.bukkit.DisguiseCraft.DisguiseCraft;
+import pgDev.bukkit.DisguiseCraft.api.DisguiseCraftAPI;
 
 /**
  *
@@ -21,6 +23,11 @@ public final class Plugin extends JavaPlugin {
     private WorldManager worldManager;
     private GameManager gameManager;
     private PostManager postManager;
+    private DisguiseCraftAPI dcAPI;
+
+    public void setupDisguiseCraft() {
+        dcAPI = DisguiseCraft.getAPI();
+    }
     private static Plugin instance;
 
     public static Plugin getInstance() {
@@ -44,6 +51,7 @@ public final class Plugin extends JavaPlugin {
     @Override
     public void onEnable() {
         super.onEnable();
+        setupDisguiseCraft();
         worldManager = new WorldManager(this);
         gameManager = new GameManager(this);
         gameManager.loadGameList();
@@ -76,4 +84,9 @@ public final class Plugin extends JavaPlugin {
     public PostManager getPostManager() {
         return postManager;
     }
+
+    public DisguiseCraftAPI getDisguiseCraftAPI() {
+        return dcAPI;
+    }
+    
 }
