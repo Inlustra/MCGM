@@ -40,10 +40,10 @@ public class MobAttack extends Minigame {
             PlayerInventory inventory = p.getInventory();
             inventory.clear();
         }
-        AlphaMob = playing.get(Misc.getRandom(0, playing.size()));
-        AlphaMob.setWalkSpeed(0.8f);
+        AlphaMob = playing.get(Misc.getRandom(0, playing.size()-1));
+        AlphaMob.setWalkSpeed(0.4f);
         AlphaMob.sendMessage(ChatColor.WHITE + "YOU ARE THE " + ChatColor.DARK_PURPLE + " ALPHA MOB" + ChatColor.WHITE + "!");
-        Disguise AlphaDisguise = new Disguise(AlphaMob.getEntityId(), Disguise.MobType.Zombie);
+        Disguise AlphaDisguise = new Disguise(plugin.getDisguiseCraftAPI().newEntityID(), Disguise.MobType.Zombie);
         plugin.getDisguiseCraftAPI().disguisePlayer(AlphaMob, AlphaDisguise);
     }
 

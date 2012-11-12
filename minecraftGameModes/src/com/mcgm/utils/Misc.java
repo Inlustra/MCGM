@@ -77,6 +77,7 @@ public class Misc {
         p.setWalkSpeed(0.2f);
         p.setLevel(0);
         p.setExp(0);
+        Plugin.getInstance().getDisguiseCraftAPI().undisguisePlayer(p);
         if (teleport) {
             p.teleport(Plugin.getInstance().getWorldManager().getMainSpawn());
         }

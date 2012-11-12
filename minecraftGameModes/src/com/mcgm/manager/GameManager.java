@@ -33,14 +33,14 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * @author Tom
  */
 public class GameManager implements Listener {
-
+    
     private Minigame currentMinigame;
     private GameSource gameSrc;
     private List<GameDefinition> gameDefs;
     private String gameList;
     private Plugin plugin;
     private ArrayList<Player> playing;
-
+    
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent e) {
         Player p = e.getPlayer();
@@ -58,7 +58,7 @@ public class GameManager implements Listener {
             }
         }
     }
-
+    
     @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent e) {
         e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN
@@ -78,7 +78,7 @@ public class GameManager implements Listener {
             }
         }, 10L);
     }
-
+    
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
@@ -93,7 +93,7 @@ public class GameManager implements Listener {
         }
     }
     private int voteTime = 180;
-
+    
     public GameManager(final Plugin p) {
         playing = new ArrayList<>();
         plugin = p;
@@ -122,15 +122,12 @@ public class GameManager implements Listener {
             }
         }, 0, 20L);
     }
-
+    
     public void loadManager() {
         Command spawn = new Command("spawn", "Sends player to spawn", "SPAWN", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                for (int i = 0; i < plugin.getServer().getWorlds().size(); i++) {
-                    System.out.println(plugin.getServer().getWorlds().get(i).getName());
-                }
-                ((Player) cs).teleport(Plugin.getInstance().getWorldManager().getMainSpawn());
+                Misc.cleanPlayer((Player) cs, true);
                 return true;
             }
         };
@@ -183,7 +180,7 @@ public class GameManager implements Listener {
                         cs.sendMessage(ChatColor.RED + "A game is currently in progress, please wait for the game to finish.");
                     }
                     playing.add((Player) cs);
-
+                    
                 } else {
                     cs.sendMessage(ChatColor.RED + "You're already playing!");
                 }
@@ -252,7 +249,7 @@ public class GameManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     List<Player> playersVoted = new ArrayList<>();
-
+    
     public void addVote(Player p, GameDefinition gdef) {
         if (!playersVoted.contains(p)) {
             playersVoted.add(p);
@@ -266,15 +263,15 @@ public class GameManager implements Listener {
         } else {
             p.sendMessage("You've already voted!");
         }
-
+        
     }
-
+    
     public void performCountDown(final int time) {
         performCountDown(time, null);
     }
-
+    
     public void performCountDown(final int time, final GameDefinition game) {
-
+        
         GameDefinition gameToRun = game;
         if (game == null) {
             GameDefinition highestVoted = gameDefs.get(0);
@@ -289,9 +286,9 @@ public class GameManager implements Listener {
             p.sendMessage(ChatColor.WHITE + "A game has been chosen!");
             p.sendMessage(ChatColor.WHITE + "Prepare for: " + ChatColor.AQUA + gameToRun.getName());
         }
-
+        
         plugin.getWorldManager().regenWorld(Misc.MINIGAME_WORLD, true, "".equals(gameToRun.getSeed()) ? true : false, "" + gameToRun.getSeed());
-
+        
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
@@ -304,7 +301,7 @@ public class GameManager implements Listener {
         currentMinigame.generateGame();
         setTaskId(Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
             int i = 6;
-
+            
             @Override
             public void run() {
                 if (i > 0) {
@@ -318,15 +315,15 @@ public class GameManager implements Listener {
         }, 0, 20L));
     }
     private int id;
-
+    
     public void setTaskId(int id) {
         this.id = id;
     }
-
+    
     private void cancel() {
         Bukkit.getScheduler().cancelTask(id);
     }
-
+    
     public void loadGameList() {
         gameSrc = new GameSource(Paths.compiledDir);
         gameDefs = gameSrc.list();
@@ -338,7 +335,7 @@ public class GameManager implements Listener {
         gameList = sb.toString();
         Misc.outPrint(gameList);
     }
-
+    
     public GameDefinition getGame(String name) {
         for (GameDefinition def : gameDefs) {
             for (String alias : def.aliases) {
@@ -352,11 +349,11 @@ public class GameManager implements Listener {
         }
         return null;
     }
-
+    
     public ArrayList<Player> getPlaying() {
         return playing;
     }
-
+    
     public Plugin getPlugin() {
         return plugin;
     }
