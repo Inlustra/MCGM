@@ -9,6 +9,7 @@ import com.mcgm.manager.GameManager;
 import com.mcgm.manager.PostManager;
 import com.mcgm.manager.WorldManager;
 import com.mcgm.utils.Misc;
+import com.mcgm.utils.WorldUtils;
 import org.bukkit.plugin.java.JavaPlugin;
 import pgDev.bukkit.DisguiseCraft.DisguiseCraft;
 import pgDev.bukkit.DisguiseCraft.api.DisguiseCraftAPI;
@@ -57,12 +58,12 @@ public final class Plugin extends JavaPlugin {
         gameManager.loadGameList();
         postManager = new PostManager(this);
         gameManager.loadManager();
-        worldManager.loadWorlds(Misc.MAIN_WORLD,
-                Misc.MINIGAME_WORLD);
-        worldManager.loadedWorlds.get(Misc.MINIGAME_WORLD).setAutoSave(false);
-        worldManager.loadedWorlds.get(Misc.MAIN_WORLD).setSpawnLocation(worldManager.getMainSpawn().getBlockX(),
-                worldManager.getMainSpawn().getBlockY(),
-                worldManager.getMainSpawn().getBlockZ());
+        worldManager.loadWorlds(WorldUtils.MAIN_WORLD,
+                WorldUtils.MINIGAME_WORLD);
+        worldManager.loadedWorlds.get(WorldUtils.MINIGAME_WORLD).setAutoSave(false);
+        worldManager.loadedWorlds.get(WorldUtils.MAIN_WORLD).setSpawnLocation(WorldUtils.getMainSpawn().getBlockX(),
+                WorldUtils.getMainSpawn().getBlockY(),
+                WorldUtils.getMainSpawn().getBlockZ());
     }
 
     @Override

@@ -11,6 +11,9 @@ import com.mcgm.game.provider.GameDefinition;
 import com.mcgm.game.provider.GameSource;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
+import com.mcgm.utils.PlayerUtils;
+import com.mcgm.utils.WebUtils;
+import com.mcgm.utils.WorldUtils;
 import com.mcgm.web.Post;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -52,7 +55,7 @@ public class GameManager implements Listener {
                 currentMinigame.playerDisconnect(p);
                 currentMinigame.getPlaying().remove(p);
                 if (currentMinigame.getPlaying().size() <= 1) {
-                    Misc.cleanPlayer(p, false);
+                    PlayerUtils.cleanPlayer(p, false);
                     Bukkit.getPluginManager().callEvent(new GameEndEvent(currentMinigame, false, (Player) null));
                 }
             }
@@ -66,8 +69,8 @@ public class GameManager implements Listener {
         Bukkit.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
             @Override
             public void run() {
-                e.getPlayer().teleport(Plugin.getInstance().getWorldManager().getMainSpawn());
-                Post p = new Post(Misc.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
+                WorldUtils.teleportSafely(e.getPlayer(),WorldUtils.getMainSpawn());
+                Post p = new Post(WebUtils.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
                     @Override
                     public void serverResponse(String response) {
                         e.getPlayer().sendMessage(response);
@@ -83,7 +86,7 @@ public class GameManager implements Listener {
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
             for (Player p : currentMinigame.startingPlayers) {
-                Misc.cleanPlayer(p, p.isOnline() ? true : false);
+                PlayerUtils.cleanPlayer(p, p.isOnline() ? true : false);
             }
             HandlerList.unregisterAll(currentMinigame);
             currentMinigame.onEnd();
@@ -127,7 +130,7 @@ public class GameManager implements Listener {
         Command spawn = new Command("spawn", "Sends player to spawn", "SPAWN", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                Misc.cleanPlayer((Player) cs, true);
+                PlayerUtils.cleanPlayer((Player) cs, true);
                 return true;
             }
         };
@@ -287,7 +290,7 @@ public class GameManager implements Listener {
             p.sendMessage(ChatColor.WHITE + "Prepare for: " + ChatColor.AQUA + gameToRun.getName());
         }
         
-        plugin.getWorldManager().regenWorld(Misc.MINIGAME_WORLD, true, "".equals(gameToRun.getSeed()) ? true : false, "" + gameToRun.getSeed());
+        plugin.getWorldManager().regenWorld(WorldUtils.MINIGAME_WORLD, true, "".equals(gameToRun.getSeed()) ? true : false, "" + gameToRun.getSeed());
         
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());

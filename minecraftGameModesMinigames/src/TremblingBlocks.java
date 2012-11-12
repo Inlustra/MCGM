@@ -3,6 +3,7 @@ import com.mcgm.Plugin;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameInfo;
+import com.mcgm.utils.WorldUtils;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import com.sk89q.worldedit.Vector;
@@ -75,12 +76,12 @@ public class TremblingBlocks extends Minigame {
 
     @Override
     public void generateGame() {
-        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+        WorldUtils.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
                 plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD);
-        spawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD);
+        spawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
                 plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
     }
 
     @Override

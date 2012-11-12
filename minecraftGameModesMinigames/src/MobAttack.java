@@ -2,6 +2,7 @@
 import com.mcgm.game.Minigame;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
+import com.mcgm.utils.WorldUtils;
 import org.bukkit.Location;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -35,7 +36,7 @@ public class MobAttack extends Minigame {
     @Override
     public void startGame() {
         for (Player p : playing) {
-            Location teleport = plugin.getWorldManager().getMainSpawn();
+            Location teleport = WorldUtils.getMainSpawn();
             p.teleport(teleport);
             PlayerInventory inventory = p.getInventory();
             inventory.clear();

@@ -4,28 +4,7 @@
  */
 package com.mcgm.utils;
 
-import com.mcgm.Plugin;
-import com.sk89q.worldedit.CuboidClipboard;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.MaxChangedBlocksException;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
-import com.sk89q.worldedit.data.DataException;
-import com.sk89q.worldedit.schematic.SchematicFormat;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 /**
@@ -34,93 +13,8 @@ import org.bukkit.entity.Player;
  */
 public class Misc {
 
-    public static String MAIN_WORLD = "world";
-    public static String MINIGAME_WORLD = "minigameWorld";
-    public static String LogonURL = "http://virus78.chocolate.feralhosting.com/mcgmweb/testpost.php";
-
     public static byte degreeToByte(float degree) {
         return (byte) ((int) degree * 256.0F / 360.0F);
-    }
-
-    public static void setBlocks(Material t, Location... l) {
-        for (Location loc : l) {
-            loc.getBlock().setType(t);
-        }
-    }
-
-    public Location[] getLocationsOfType(Location center, Material t, int rx, int ry, int rz) {
-        ArrayList<Location> list = new ArrayList<>();
-        for (int x = -rx; x < rx * 2; x++) {
-            for (int y = -ry; y < ry * 2; y++) {
-                for (int z = -rz; z < rz * 2; z++) {
-                    Location l = new Location(center.getWorld(),
-                            center.getX() + x,
-                            center.getY() + y,
-                            center.getZ() + z);
-                    if(l.getBlock().getType() == t) {
-                        list.add(l);
-                    }
-                }
-            }
-        }
-        return list.toArray(new Location[list.size()]);
-    }
-
-    public static Location[] getRadiusFrom(Location l, int rx, int ry, int rz) {
-        ArrayList<Location> list = new ArrayList<>();
-        for (int x = -rx; x < rx * 2; x++) {
-            for (int y = -ry; y < ry * 2; y++) {
-                for (int z = -rz; z < rz * 2; z++) {
-                    list.add(new Location(l.getWorld(),
-                            l.getX() + x,
-                            l.getY() + y,
-                            l.getZ() + z));
-                }
-            }
-        }
-
-        return list.toArray(new Location[list.size()]);
-    }
-
-    public static String convertStreamToString(InputStream is)
-            throws IOException {
-        /*
-         * To convert the InputStream to String we use the
-         * Reader.read(char[] buffer) method. We iterate until the
-         * Reader return -1 which means there's no more data to
-         * read. We use the StringWriter class to produce the string.
-         */
-        if (is != null) {
-            Writer writer = new StringWriter();
-
-            char[] buffer = new char[1024];
-            try {
-                Reader reader = new BufferedReader(
-                        new InputStreamReader(is, "UTF-8"));
-                int n;
-                while ((n = reader.read(buffer)) != -1) {
-                    writer.write(buffer, 0, n);
-                }
-            } finally {
-                is.close();
-            }
-            return writer.toString();
-        } else {
-            return "";
-        }
-    }
-
-    public static void cleanPlayer(Player p, boolean teleport) {
-        p.setHealth(20);
-        p.setFoodLevel(20);
-        p.getInventory().clear();
-        p.setWalkSpeed(0.2f);
-        p.setLevel(0);
-        p.setExp(0);
-        Plugin.getInstance().getDisguiseCraftAPI().undisguisePlayer(p);
-        if (teleport) {
-            p.teleport(Plugin.getInstance().getWorldManager().getMainSpawn());
-        }
     }
 
     /**
@@ -164,40 +58,6 @@ public class Misc {
         } else {
             return false;
         }
-    }
-
-    public static void loadArea(final File file, final Vector origin, String world) {
-        try {
-            EditSession es = new EditSession(BukkitUtil.getLocalWorld(Bukkit.getWorld(world)), 999999999);
-            CuboidClipboard cc = SchematicFormat.MCEDIT.load(file);
-            cc.paste(es, origin, false);
-        } catch (MaxChangedBlocksException | IOException | DataException ex) {
-            Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public static Location[] getLocations(final File file, final Vector origin, String world, Material m) {
-        ArrayList<Location> l = new ArrayList<>();
-        try {
-            CuboidClipboard cc = SchematicFormat.MCEDIT.load(file);
-            cc.setOrigin(origin.add(cc.getOffset()));
-            for (int x = (int) cc.getOrigin().getX(); x < cc.getOrigin().getX() + cc.getWidth(); x++) {
-                for (int y = (int) cc.getOrigin().getY(); y < cc.getOrigin().getY() + cc.getHeight(); y++) {
-                    for (int z = (int) cc.getOrigin().getZ(); z < cc.getOrigin().getZ() + cc.getLength(); z++) {
-                        Location loc = new Location(Bukkit.getWorld(world), x, y, z);
-                        if (loc.getBlock().getType() == m) {
-                            l.add(loc);
-                        }
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (DataException ex) {
-            Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return l.toArray(new Location[l.size()]);
-
     }
 
     public static String buildString(String[] str, String separator) {

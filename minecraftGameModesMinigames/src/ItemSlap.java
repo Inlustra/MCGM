@@ -2,6 +2,7 @@
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameInfo;
+import com.mcgm.utils.WorldUtils;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import com.sk89q.worldedit.Vector;
@@ -216,15 +217,15 @@ public class ItemSlap extends Minigame {
 
     @Override
     public void generateGame() {
-        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+        WorldUtils.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
                 plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD);
-        playerSpawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD);
+        playerSpawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
                 plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
-        itemSpawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
+        itemSpawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
                 plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_WIRE);
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.REDSTONE_WIRE);
         if (itemProbabilityList == null) {
             itemProbabilityList = new ArrayList<>();
             for (Material m : usedItems) {

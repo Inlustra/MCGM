@@ -5,6 +5,7 @@
 package com.mcgm.web;
 
 import com.mcgm.utils.Misc;
+import com.mcgm.utils.WebUtils;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,7 +37,7 @@ public abstract class Post {
 
     public void request() {
         try {
-            serverResponse(Misc.convertStreamToString(new ClientHttpRequest(url).post("data", item)));
+            serverResponse(WebUtils.convertStreamToString(new ClientHttpRequest(url).post("data", item)));
         } catch (IOException ex) {
             Logger.getLogger(Post.class.getName()).log(Level.SEVERE, null, ex);
         }

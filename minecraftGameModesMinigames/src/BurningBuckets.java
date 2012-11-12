@@ -2,6 +2,7 @@
 import com.mcgm.Plugin;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.provider.GameInfo;
+import com.mcgm.utils.WorldUtils;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import com.sk89q.worldedit.Vector;
@@ -34,12 +35,12 @@ public class BurningBuckets extends Minigame {
 
     @Override
     public void generateGame() {
-        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/BurningBuckets.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+        WorldUtils.loadArea(new File(Paths.schematicDir.getPath() + "/BurningBuckets.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
                 plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD);
-        spawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/BurningBuckets.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD);
+        spawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/BurningBuckets.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
                 plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.DIAMOND_BLOCK);
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.DIAMOND_BLOCK);
     }
 
     @Override

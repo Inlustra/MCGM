@@ -6,10 +6,16 @@ package com.mcgm.manager;
 
 import com.mcgm.Plugin;
 import com.mcgm.utils.Misc;
+import com.mcgm.utils.WorldUtils;
+import com.mcgm.worlds.PlayerTeleport;
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -23,23 +29,48 @@ import org.bukkit.entity.Player;
  */
 public class WorldManager {
 
+    private Object teleportLock = new Object();
+    private Queue<PlayerTeleport> teleportQueue = new LinkedList<>();
     public HashMap<String, World> loadedWorlds = new HashMap<>();
     private Plugin plugin;
 
-    public Location getMainSpawn() {
-        return new Location(loadedWorlds.get(Misc.MAIN_WORLD), 94, 179, 163);
-    }
-
     public World getMainWorld() {
-        return loadedWorlds.get(Misc.MAIN_WORLD);
+        return loadedWorlds.get(WorldUtils.MAIN_WORLD);
     }
 
     public World getMinigameWorld() {
-        return loadedWorlds.get(Misc.MINIGAME_WORLD);
+        return loadedWorlds.get(WorldUtils.MINIGAME_WORLD);
     }
 
     public WorldManager(Plugin p) {
         this.plugin = p;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (;;) {
+                    synchronized (teleportLock) {
+                        try {
+                            while (!teleportQueue.isEmpty()) {
+                                teleportQueue.poll().teleport();
+                            }
+                            teleportLock.wait();
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(PostManager.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void teleport(PlayerTeleport t) {
+        if (t.getL().getWorld() == null) {
+            loadWorlds(t.getL().getWorld().getName());
+        }
+        synchronized (teleportLock) {
+            teleportQueue.add(t);
+            teleportLock.notifyAll();
+        }
     }
 
     public void loadWorlds(String... worlds) {
@@ -133,7 +164,7 @@ public class WorldManager {
     public void purgeWorld(World w) {
         for (Entity e : w.getEntities()) {
             if (e instanceof Player) {
-                e.teleport(getMainSpawn());
+                e.teleport(WorldUtils.getMainSpawn());
             } else {
                 e.remove();
             }
