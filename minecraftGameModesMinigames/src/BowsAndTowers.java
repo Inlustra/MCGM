@@ -116,7 +116,7 @@ public class BowsAndTowers extends Minigame {
             inventory.addItem(bow, arrow, arrow2, arrow3, arrow4);
             
             for(int foo=0 ; foo<20; foo++){
-            Location initalChickens = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY(), spawn.getBlockZ() + Misc.getRandom(-10, 10));
+            Location initalChickens = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY()+20, spawn.getBlockZ() + Misc.getRandom(-10, 10));
             plugin.getWorldManager().getMinigameWorld().spawnEntity(initalChickens, EntityType.CHICKEN);
             }
             
