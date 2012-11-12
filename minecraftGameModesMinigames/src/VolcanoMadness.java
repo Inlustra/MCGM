@@ -32,7 +32,7 @@ public class VolcanoMadness extends Minigame {
     @Override
     public void startGame() {
         for (Player p : playing) {
-            p.teleport(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlock().getRelative(BlockFace.NORTH, 2).getLocation());
+            p.teleport(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlock().getRelative(BlockFace.DOWN, 6).getLocation());
         }
     }
 
