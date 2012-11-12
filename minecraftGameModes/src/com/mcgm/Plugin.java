@@ -9,8 +9,6 @@ import com.mcgm.manager.GameManager;
 import com.mcgm.manager.PostManager;
 import com.mcgm.manager.WorldManager;
 import com.mcgm.utils.Misc;
-import org.bukkit.Bukkit;
-import org.bukkit.WorldCreator;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -54,8 +52,8 @@ public final class Plugin extends JavaPlugin {
         worldManager.loadWorlds(Misc.MAIN_WORLD,
                 Misc.MINIGAME_WORLD);
         worldManager.loadedWorlds.get(Misc.MINIGAME_WORLD).setAutoSave(false);
-        worldManager.loadedWorlds.get(Misc.MAIN_WORLD).setSpawnLocation(worldManager.getMainSpawn().getBlockX(), 
-                worldManager.getMainSpawn().getBlockY(), 
+        worldManager.loadedWorlds.get(Misc.MAIN_WORLD).setSpawnLocation(worldManager.getMainSpawn().getBlockX(),
+                worldManager.getMainSpawn().getBlockY(),
                 worldManager.getMainSpawn().getBlockZ());
     }
 

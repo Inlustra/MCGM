@@ -38,13 +38,13 @@ import org.bukkit.inventory.PlayerInventory;
 gameTime = -1, description = "Much like Super smash brawl, in this game the idea is to knock your opponent off of the map! "
 + "Learn the different item effects!")
 public class ItemSlap extends Minigame {
-    
-    Location[] playerSpawns;
-    Location[] itemSpawns;
+
+    Location[] playerSpawns = new Location[]{};
+    Location[] itemSpawns = new Location[]{};
     HashMap<Player, Integer> playerPercent = new HashMap<>();
     HashMap<Player, Integer> playerLives = new HashMap<>();
     HashMap<Player, Player> playerLastHitter = new HashMap<>();
-    
+
     public void performDeath(Player p) {
         int LivesLeft = playerLives.get(p);
         if (LivesLeft == 1) {
@@ -63,7 +63,7 @@ public class ItemSlap extends Minigame {
             p.sendMessage(ChatColor.RED + "You Died, You have " + ChatColor.GREEN + playerLives.get(p) + ChatColor.RED + " Lives left!");
         }
     }
-    
+
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent e) {
         e.getPlayer().setWalkSpeed((float) itemDetails(e.getPlayer().getItemInHand().getType())[4]);
@@ -110,17 +110,17 @@ public class ItemSlap extends Minigame {
                 return null;
         }
     }
-    
+
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerMove(PlayerMoveEvent e) {
-            synchronized (playing) {
-                    if (e.getPlayer().getLocation().getY() < 130) {
-                        performDeath(e.getPlayer());
-                    }
-                
+        synchronized (playing) {
+            if (e.getPlayer().getLocation().getY() < 130) {
+                performDeath(e.getPlayer());
             }
+
+        }
     }
-    
+
     @EventHandler
     public void onPlayerPickupItem(PlayerPickupItemEvent e) {
         boolean canHandle = false;
@@ -129,7 +129,7 @@ public class ItemSlap extends Minigame {
                 canHandle = true;
                 break;
             }
-            
+
         }
         if (canHandle) {
             int heal = (int) itemDetails(e.getItem().getItemStack().getType())[0];
@@ -154,7 +154,7 @@ public class ItemSlap extends Minigame {
             e.setCancelled(toCancel);
         }
     }
-    
+
     @EventHandler
     public void onPlayerDamageFromEntity(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player) {
@@ -174,33 +174,33 @@ public class ItemSlap extends Minigame {
         }
     }
     public ArrayList<Material> itemProbabilityList;
-    
+
     public Material randomSpawn() {
         return itemProbabilityList.get(Misc.getRandom(0, itemProbabilityList.size() - 1));
     }
-    
+
     public void showPlayerPercent(Player m) {
         m.setLevel(playerPercent.get(m));
     }
-    
+
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         Entity player = event.getEntity();
         if (player instanceof Player) {
             Player p = (Player) player;
             p.setLevel(playerPercent.get(p));
-            
+
             Integer damage = event.getDamage();
             Integer pHealth = p.getHealth();
             if (pHealth - damage <= 0) {
                 performDeath(p);
                 event.setCancelled(true);
             }
-            
+
         }
     }
     int timeToItemSpawn = 5;
-    
+
     @Override
     public void minigameTick() {
         if (itemSpawns.length != 0) {
@@ -213,7 +213,7 @@ public class ItemSlap extends Minigame {
             timeToItemSpawn--;
         }
     }
-    
+
     @Override
     public void generateGame() {
         Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
@@ -231,15 +231,15 @@ public class ItemSlap extends Minigame {
                 for (int i = 0; i < itemDetails(m)[5]; i++) {
                     itemProbabilityList.add(m);
                 }
-                
+
             }
         }
     }
-    
+
     @Override
     public void onTimeUp() {
     }
-    
+
     @Override
     public void startGame() {
         for (Player p : playing) {
@@ -251,14 +251,14 @@ public class ItemSlap extends Minigame {
             inventory.clear();
         }
     }
-    
+
     @Override
     public void onEnd() {
         for (Player p : plugin.getGameManager().getPlaying()) {
             p.setWalkSpeed(0.2f);
         }
     }
-    
+
     @Override
     public void playerDisconnect(Player player) {
         player.setWalkSpeed(0.2f);

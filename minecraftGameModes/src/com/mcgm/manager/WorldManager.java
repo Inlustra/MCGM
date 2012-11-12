@@ -22,26 +22,26 @@ import org.bukkit.entity.Player;
  * @author Thomas
  */
 public class WorldManager {
-    
+
     public HashMap<String, World> loadedWorlds = new HashMap<>();
     private Plugin plugin;
-    
+
     public Location getMainSpawn() {
         return new Location(loadedWorlds.get(Misc.MAIN_WORLD), 94, 179, 163);
     }
-    
+
     public World getMainWorld() {
         return loadedWorlds.get(Misc.MAIN_WORLD);
     }
-    
+
     public World getMinigameWorld() {
         return loadedWorlds.get(Misc.MINIGAME_WORLD);
     }
-    
+
     public WorldManager(Plugin p) {
         this.plugin = p;
     }
-    
+
     public void loadWorlds(String... worlds) {
         for (String w : worlds) {
             if (Bukkit.getWorld(w) != null) {
@@ -56,7 +56,7 @@ public class WorldManager {
             }
         }
     }
-    
+
     public void doLoad(WorldCreator creator) {
         World cbworld;
         try {
@@ -67,42 +67,43 @@ public class WorldManager {
             Misc.outPrintWarning("World Broken: " + creator.name());
         }
     }
-    
+
     public boolean deleteWorld(String name, boolean deleteWorldFolder) {
-        World world = this.plugin.getServer().getWorld(name);
-        if (world == null) {
-            return false;
-        }
+        World world = loadedWorlds.get(name);
+
         try {
-            File worldFile = world.getWorldFolder();
-            Misc.outPrint("deleteWorld(): worldFile: " + worldFile.getAbsolutePath());
-            if (deleteWorldFolder ? Misc.deleteFolder(worldFile) : Misc.deleteFolderContents(worldFile)) {
-                Misc.outPrint("World " + name + " was DELETED.");
-                return true;
+            if (world != null) {
+                File worldFile = world.getWorldFolder();
+                Misc.outPrint("deleteWorld(): worldFile: " + worldFile.getAbsolutePath());
+                if (deleteWorldFolder ? Misc.deleteFolder(worldFile) : Misc.deleteFolderContents(worldFile)) {
+                    Misc.outPrint("World " + name + " was DELETED.");
+                    return true;
+                } else {
+                    Misc.outPrintWarning("World " + name + " was NOT DELETED.");
+                    return false;
+                }
             } else {
-                Misc.outPrintWarning("World " + name + " was NOT DELETED.");
-                return false;
+                Misc.outPrintWarning("World was null");
+                return true;
             }
-            
         } catch (Throwable e) {
             e.printStackTrace();
             return false;
         }
     }
-    
+
     public boolean regenWorld(String name, boolean useNewSeed, boolean randomSeed, String seed) {
         World world = loadedWorlds.get(name);
         if (world == null) {
             Misc.outPrintWarning("Unable to regenerate world: " + name + " as it wasn't loaded");
             return false;
         }
-        Bukkit.unloadWorld(name, false);
         WorldCreator c = WorldCreator.name(name);
         List<Player> ps = world.getPlayers();
-        
+
         if (useNewSeed) {
             long theSeed;
-            
+
             if (randomSeed) {
                 theSeed = new Random().nextLong();
             } else {
@@ -115,6 +116,7 @@ public class WorldManager {
             }
         }
         purgeWorld(world);
+        Bukkit.unloadWorld(name, false);
         if (this.deleteWorld(name, false)) {
             this.doLoad(c);
             Location newSpawn = world.getSpawnLocation();
@@ -127,7 +129,7 @@ public class WorldManager {
         }
         return false;
     }
-    
+
     public void purgeWorld(World w) {
         for (Entity e : w.getEntities()) {
             if (e instanceof Player) {

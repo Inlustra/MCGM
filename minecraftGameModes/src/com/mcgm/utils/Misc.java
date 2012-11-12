@@ -38,6 +38,10 @@ public class Misc {
     public static String MINIGAME_WORLD = "minigameWorld";
     public static String LogonURL = "http://virus78.chocolate.feralhosting.com/mcgmweb/testpost.php";
 
+    public static byte degreeToByte(float degree) {
+        return (byte) ((int) degree * 256.0F / 360.0F);
+    }
+
     public static String convertStreamToString(InputStream is)
             throws IOException {
         /*

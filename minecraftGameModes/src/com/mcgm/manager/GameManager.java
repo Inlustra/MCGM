@@ -74,8 +74,6 @@ public class GameManager implements Listener {
                     }
                 };
                 plugin.getPostManager().postImmediate(p);
-                e.getPlayer().sendMessage("" + plugin.getConfig().get("server-name"));
-                plugin.getConfig().set("server-name", "LAWLL");
                 plugin.reloadConfig();
             }
         }, 10L);
