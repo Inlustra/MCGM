@@ -61,7 +61,7 @@ public class BowsAndTowers extends Minigame {
             playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.BRICK, true).getLocation());
             makeLayer(playerTowers.get(killer).getBlock(), Material.FENCE, false);
             killer.playSound(killer.getLocation(), Sound.BURP, 1f, 1f);
-            Location teleportLocation = new Location(playerTowers.get(killer).getWorld(), killer.getLocation().getX() + 0.5, playerTowers.get(killer).getY(), killer.getLocation().getZ() + 0.5, killer.getLocation().getYaw(), killer.getLocation().getPitch());
+            Location teleportLocation = new Location(playerTowers.get(killer).getWorld(), playerTowers.get(killer).getX() + 0.5, playerTowers.get(killer).getY(), playerTowers.get(killer).getZ() + 0.5, killer.getLocation().getYaw(), killer.getLocation().getPitch());
             killer.teleport(teleportLocation);
 
             for (Player p : playing) {
