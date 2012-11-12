@@ -57,6 +57,10 @@ public class WorldUtils {
         Plugin.getInstance().getWorldManager().teleport(new PlayerTeleport(p, getSafeSpawnAroundABlock(l)));
     }
     
+    public static void teleport(Player p, Location l) {
+        Plugin.getInstance().getWorldManager().teleport(new PlayerTeleport(p, l));
+    }
+    
     public static Location getMinigameSpawn() {
         return Plugin.getInstance().getWorldManager().getMinigameWorld().getSpawnLocation();
     }
