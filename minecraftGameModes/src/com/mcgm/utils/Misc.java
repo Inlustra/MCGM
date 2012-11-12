@@ -42,6 +42,46 @@ public class Misc {
         return (byte) ((int) degree * 256.0F / 360.0F);
     }
 
+    public static void setBlocks(Material t, Location... l) {
+        for (Location loc : l) {
+            loc.getBlock().setType(t);
+        }
+    }
+
+    public Location[] getLocationsOfType(Location center, Material t, int rx, int ry, int rz) {
+        ArrayList<Location> list = new ArrayList<>();
+        for (int x = -rx; x < rx * 2; x++) {
+            for (int y = -ry; y < ry * 2; y++) {
+                for (int z = -rz; z < rz * 2; z++) {
+                    Location l = new Location(center.getWorld(),
+                            center.getX() + x,
+                            center.getY() + y,
+                            center.getZ() + z);
+                    if(l.getBlock().getType() == t) {
+                        list.add(l);
+                    }
+                }
+            }
+        }
+        return list.toArray(new Location[list.size()]);
+    }
+
+    public static Location[] getRadiusFrom(Location l, int rx, int ry, int rz) {
+        ArrayList<Location> list = new ArrayList<>();
+        for (int x = -rx; x < rx * 2; x++) {
+            for (int y = -ry; y < ry * 2; y++) {
+                for (int z = -rz; z < rz * 2; z++) {
+                    list.add(new Location(l.getWorld(),
+                            l.getX() + x,
+                            l.getY() + y,
+                            l.getZ() + z));
+                }
+            }
+        }
+
+        return list.toArray(new Location[list.size()]);
+    }
+
     public static String convertStreamToString(InputStream is)
             throws IOException {
         /*
