@@ -88,7 +88,7 @@ public class GameSource {
                     Misc.outPrintWarning(name + " is not a valid script and was ignored!");
                     return;
                 }
-                if (clazz.isAnnotationPresent(GameInfo.class)) {
+                if (clazz.isAnnotationPresent(GameInfo.class) && !name.contains("$")) {
                     final GameDefinition def = new GameDefinition();
                     final GameInfo info = clazz.getAnnotation(GameInfo.class);
                     def.name = info.name();

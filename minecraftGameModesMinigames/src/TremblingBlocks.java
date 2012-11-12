@@ -24,11 +24,8 @@ import org.bukkit.inventory.PlayerInventory;
 gameTime = 125, description = "Stand still and shoot, dont turn back")
 public class TremblingBlocks extends Minigame {
 
-    Location area = new Location(Misc.getMinigameWorld(), Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
-            Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-            Misc.getMinigameWorld().getSpawnLocation().getBlockZ());
+    Location area = plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlock().getRelative(0, 100, 0).getLocation();
     Location[] spawns = new Location[]{area};
-
     public HashMap<Player, Location> LastLocation = new HashMap<>();
 
     @EventHandler
@@ -57,7 +54,7 @@ public class TremblingBlocks extends Minigame {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
-        if (e.getPlayer().getWorld() == Misc.getMinigameWorld()) {
+        if (e.getPlayer().getWorld() == plugin.getWorldManager().getMinigameWorld()) {
             Location playerLoc = e.getPlayer().getLocation();
             Location playerStandingOn = new Location(playerLoc.getWorld(), playerLoc.getBlockX(), playerLoc.getBlockY() - 1, playerLoc.getBlockZ());
             if ((LastLocation.get(e.getPlayer()).getBlock().getX() != playerStandingOn.getBlock().getX())
@@ -67,7 +64,7 @@ public class TremblingBlocks extends Minigame {
             }
             if (playerLoc.getY() < 130) {
                 e.getPlayer().setHealth(0);
-                e.getPlayer().teleport(Misc.getMainWorld().getSpawnLocation());
+                e.getPlayer().teleport(plugin.getWorldManager().getMainWorld().getSpawnLocation());
             }
         }
     }
@@ -78,12 +75,12 @@ public class TremblingBlocks extends Minigame {
 
     @Override
     public void generateGame() {
-        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
-                Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD);
-        spawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
-                Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                Misc.getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
+        Misc.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArena.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD);
+        spawns = Misc.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
+                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), Misc.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
     }
 
     @Override

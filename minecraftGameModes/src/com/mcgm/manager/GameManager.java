@@ -35,7 +35,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class GameManager implements Listener {
 
     private Minigame currentMinigame;
-    private static GameManager instance;
     private GameSource gameSrc;
     private List<GameDefinition> gameDefs;
     private String gameList;
@@ -53,8 +52,8 @@ public class GameManager implements Listener {
                 currentMinigame.playerDisconnect(p);
                 currentMinigame.getPlaying().remove(p);
                 if (currentMinigame.getPlaying().size() <= 1) {
-                    Misc.cleanPlayer(p, true);
-                    Bukkit.getPluginManager().callEvent(new GameEndEvent(currentMinigame, false, null));
+                    Misc.cleanPlayer(p, false);
+                    Bukkit.getPluginManager().callEvent(new GameEndEvent(currentMinigame, false, (Player) null));
                 }
             }
         }
@@ -64,28 +63,34 @@ public class GameManager implements Listener {
     public void onPlayerJoin(final PlayerJoinEvent e) {
         e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN
                 + "! We currently have: " + ChatColor.GOLD + playing.size() + ChatColor.GREEN + " people playing" + ChatColor.DARK_PURPLE + " Minigames!");
-        Post p = new Post(Misc.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
+        Bukkit.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
             @Override
-            public void serverResponse(String response) {
-                e.getPlayer().sendMessage(response);
+            public void run() {
+                e.getPlayer().teleport(Plugin.getInstance().getWorldManager().getMainSpawn());
+                Post p = new Post(Misc.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
+                    @Override
+                    public void serverResponse(String response) {
+                        e.getPlayer().sendMessage(response);
+                    }
+                };
+                plugin.getPostManager().postImmediate(p);
+                e.getPlayer().sendMessage("" + plugin.getConfig().get("server-name"));
+                plugin.getConfig().set("server-name", "LAWLL");
+                plugin.reloadConfig();
             }
-        };
-        PostManager.getInstance(plugin).postImmediate(p);
-
+        }, 10L);
     }
+
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
             for (Player p : currentMinigame.startingPlayers) {
-                if (!p.isOnline()) {
-                    Misc.cleanPlayer(p, true);
-                }
+                Misc.cleanPlayer(p, p.isOnline() ? true : false);
             }
             HandlerList.unregisterAll(currentMinigame);
             currentMinigame.onEnd();
             playersVoted.clear();
             currentMinigame = null;
-            Misc.removeMinigameWorld();
             voteTime = 180;
         }
     }
@@ -127,7 +132,7 @@ public class GameManager implements Listener {
                 for (int i = 0; i < plugin.getServer().getWorlds().size(); i++) {
                     System.out.println(plugin.getServer().getWorlds().get(i).getName());
                 }
-                ((Player) cs).teleport(Misc.MAIN_SPAWN);
+                ((Player) cs).teleport(Plugin.getInstance().getWorldManager().getMainSpawn());
                 return true;
             }
         };
@@ -284,9 +289,10 @@ public class GameManager implements Listener {
         }
         for (Player p : playing) {
             p.sendMessage(ChatColor.WHITE + "A game has been chosen!");
-            p.sendMessage(ChatColor.WHITE + "Prepare for:" + ChatColor.AQUA + gameToRun.getName());
+            p.sendMessage(ChatColor.WHITE + "Prepare for: " + ChatColor.AQUA + gameToRun.getName());
         }
-        Misc.generateMinigameWorld(gameToRun.seed);
+
+        plugin.getWorldManager().regenWorld(Misc.MINIGAME_WORLD, true, gameToRun.getSeed() == -1 ? true : false, "" + gameToRun.getSeed());
 
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
@@ -323,20 +329,12 @@ public class GameManager implements Listener {
         Bukkit.getScheduler().cancelTask(id);
     }
 
-    public static GameManager getInstance(Plugin p) {
-        synchronized (GameManager.class) {
-            if (instance == null) {
-                instance = new GameManager(p);
-            }
-        }
-        return instance;
-    }
-
     public void loadGameList() {
         gameSrc = new GameSource(Paths.compiledDir);
         gameDefs = gameSrc.list();
         StringBuilder sb = new StringBuilder();
         for (GameDefinition def : gameDefs) {
+            Misc.outPrintWarning(def.getName());
             sb.append(def.getName()).append("(").append(Misc.buildString(def.aliases, ",")).append(") ");
         }
         gameList = sb.toString();

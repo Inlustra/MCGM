@@ -5,17 +5,12 @@
 package com.mcgm.manager;
 
 import com.mcgm.Plugin;
-import com.mcgm.utils.Misc;
 import com.mcgm.web.Post;
-import java.io.IOException;
-import java.net.URL;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.ClientHttpRequest;
 import org.bukkit.Bukkit;
-import org.json.simple.JSONObject;
 
 /**
  *
@@ -23,21 +18,11 @@ import org.json.simple.JSONObject;
  */
 public class PostManager {
 
-    private static PostManager instance;
     private Plugin plugin;
     private final Object postLock = new Object();
     private Queue<Post> postList;
     private final Object immediateLock = new Object();
     private Queue<Post> immediateList;
-
-    public static PostManager getInstance(Plugin p) {
-        synchronized (GameManager.class) {
-            if (instance == null) {
-                instance = new PostManager(p);
-            }
-        }
-        return instance;
-    }
 
     public PostManager(Plugin p) {
         this.plugin = p;

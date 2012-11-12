@@ -29,9 +29,7 @@ gameTime = -1, description = "First to find the diamonds wins!")
 public class DiamondHunt extends Minigame {
 
     ArrayList<Location> diamondLocations = new ArrayList<>();
-    Location cube = new Location(Misc.getMinigameWorld(), Misc.getMinigameWorld().getSpawnLocation().getBlockX(),
-            Misc.getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-            Misc.getMinigameWorld().getSpawnLocation().getBlockZ());
+    Location cube = plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlock().getRelative(0, 130, 0).getLocation();
     int diamondOre = 0;
     int dirtBlocks = 0;
     int stoneBlocks = 0;
@@ -68,31 +66,31 @@ public class DiamondHunt extends Minigame {
                     int rand = Misc.getRandom(0, 700);
                     if (rand > 699 && diamondOre < maxDiamonds) {
                         if (dirt.getBlockY() > cube.getBlockY() - 5) {
-                            Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
+                            plugin.getWorldManager().getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
                             dirtBlocks++;
                         } else {
-                            Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIAMOND_ORE);
+                            plugin.getWorldManager().getMinigameWorld().getBlockAt(dirt).setType(Material.DIAMOND_ORE);
                             diamondLocations.add(dirt);
                             diamondOre++;
                         }
                     } else if (a > 10 && diamondOre == 0) {
-                        Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIAMOND_ORE);
+                        plugin.getWorldManager().getMinigameWorld().getBlockAt(dirt).setType(Material.DIAMOND_ORE);
                         diamondLocations.add(dirt);
                         diamondOre++;
                     } else {
                         if ((dirt.getBlockY() > cube.getBlockY() - 5)) {
                             if (dirt.getBlockY() > cube.getBlockY() - 1) {
-                                Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.GRASS);
+                                plugin.getWorldManager().getMinigameWorld().getBlockAt(dirt).setType(Material.GRASS);
                             } else {
-                                Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
+                                plugin.getWorldManager().getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
                                 dirtBlocks++;
                             }
                         } else {
                             if (Misc.getRandom(0, 1) == 1) {
-                                Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
+                                plugin.getWorldManager().getMinigameWorld().getBlockAt(dirt).setType(Material.DIRT);
                                 dirtBlocks++;
                             } else {
-                                Misc.getMinigameWorld().getBlockAt(dirt).setType(Material.STONE);
+                                plugin.getWorldManager().getMinigameWorld().getBlockAt(dirt).setType(Material.STONE);
                                 stoneBlocks++;
                             }
                         }

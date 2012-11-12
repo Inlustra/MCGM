@@ -4,7 +4,7 @@
  */
 package com.mcgm.utils;
 
-import com.mcgm.manager.GameManager;
+import com.mcgm.Plugin;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -14,22 +14,18 @@ import com.sk89q.worldedit.data.DataException;
 import com.sk89q.worldedit.schematic.SchematicFormat;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
 
 /**
@@ -41,7 +37,6 @@ public class Misc {
     public static String MAIN_WORLD = "world";
     public static String MINIGAME_WORLD = "minigameWorld";
     public static String LogonURL = "http://virus78.chocolate.feralhosting.com/mcgmweb/testpost.php";
-    public static Location MAIN_SPAWN = new Location(Misc.getMainWorld(), 94, 179, 163);
 
     public static String convertStreamToString(InputStream is)
             throws IOException {
@@ -79,63 +74,50 @@ public class Misc {
         p.setLevel(0);
         p.setExp(0);
         if (teleport) {
-            p.teleport(Misc.MAIN_SPAWN);
+            p.teleport(Plugin.getInstance().getWorldManager().getMainSpawn());
         }
     }
 
-    public static World getMainWorld() {
-        return GameManager.getInstance(null).getPlugin().getServer().getWorld(MAIN_WORLD);
-    }
-
-    public static World getMinigameWorld() {
-        try {
-            return GameManager.getInstance(null).getPlugin().getServer().getWorld(MINIGAME_WORLD);
-        } catch (Exception e) {
-            e.printStackTrace();
-            GameManager.getInstance(null).getPlugin().getServer().createWorld(new WorldCreator(MINIGAME_WORLD));
-            return Bukkit.getWorld(MINIGAME_WORLD);
-        }
-    }
-
-    public static boolean minigameWorldExists() {
-        return new File(Paths.serverDir.getPath() + "/" + MINIGAME_WORLD).exists();
-    }
-
-    public static void generateMinigameWorld(long seed) {
-        try {
-            removeMinigameWorld();
-            WorldCreator c = new WorldCreator(MINIGAME_WORLD);
-            if (seed != -1) {
-                GameManager.getInstance(null).getPlugin().getServer().createWorld(c.seed(seed));
-            } else {
-                GameManager.getInstance(null).getPlugin().getServer().createWorld(c);
+    /**
+     * Used to delete a folder.
+     *
+     * @param file The folder to delete.
+     * @return true if the folder was successfully deleted.
+     */
+    public static boolean deleteFolder(File file) {
+        if (file.exists()) {
+            boolean ret = true;
+            // If the file exists, and it has more than one file in it.
+            if (file.isDirectory()) {
+                for (File f : file.listFiles()) {
+                    ret = ret && deleteFolder(f);
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return ret && file.delete();
+        } else {
+            return false;
         }
     }
 
-    public static void removeMinigameWorld() {
-        try {
-            for (Player p : getMinigameWorld().getPlayers()) {
-                p.teleport(MAIN_SPAWN);
+    /**
+     * Used to delete the contents of a folder, without deleting the folder
+     * itself.
+     *
+     * @param file The folder whose contents to delete.
+     * @return true if the contents were successfully deleted
+     */
+    public static boolean deleteFolderContents(File file) {
+        if (file.exists()) {
+            boolean ret = true;
+            // If the file exists, and it has more than one file in it.
+            if (file.isDirectory()) {
+                for (File f : file.listFiles()) {
+                    ret = ret && deleteFolder(f);
+                }
             }
-            Bukkit.unloadWorld(MINIGAME_WORLD, false);
-            File f = new File(Paths.serverDir.getPath() + "/" + MINIGAME_WORLD);
-            delete(f);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    public static void delete(File f) throws IOException {
-        if (f.isDirectory()) {
-            for (File c : f.listFiles()) {
-                delete(c);
-            }
-        }
-        if (!f.delete()) {
-            throw new FileNotFoundException("Failed to delete file: " + f);
+            return ret;
+        } else {
+            return false;
         }
     }
 
