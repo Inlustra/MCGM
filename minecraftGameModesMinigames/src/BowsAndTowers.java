@@ -41,8 +41,8 @@ public class BowsAndTowers extends Minigame {
         if (e.getPlayer().getWorld() == plugin.getWorldManager().getMinigameWorld()) {
             Location playerLoc = e.getPlayer().getLocation();
             
-            double distanceNeeded = 100 - playerStartHeight.get(e);
-            double blocksMoved = playerLoc.getY() - playerStartHeight.get(e);
+            double distanceNeeded = 100 - playerStartHeight.get(e.getPlayer());
+            double blocksMoved = playerLoc.getY() - playerStartHeight.get(e.getPlayer());
 
             double difference = (blocksMoved/distanceNeeded)*100;
             
