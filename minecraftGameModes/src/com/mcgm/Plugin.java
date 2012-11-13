@@ -4,11 +4,13 @@
  */
 package com.mcgm;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.mcgm.manager.CommandManager;
 import com.mcgm.manager.GameManager;
 import com.mcgm.manager.PostManager;
 import com.mcgm.manager.WorldManager;
-import com.mcgm.utils.Misc;
+import com.mcgm.player.TagPacketHandler;
 import com.mcgm.utils.WorldUtils;
 import org.bukkit.plugin.java.JavaPlugin;
 import pgDev.bukkit.DisguiseCraft.DisguiseCraft;
@@ -24,10 +26,11 @@ public final class Plugin extends JavaPlugin {
     private WorldManager worldManager;
     private GameManager gameManager;
     private PostManager postManager;
-    private DisguiseCraftAPI dcAPI;
+    private DisguiseCraftAPI disguiseCraftAPI;
+    private ProtocolManager protocolManager;
 
     public void setupDisguiseCraft() {
-        dcAPI = DisguiseCraft.getAPI();
+        disguiseCraftAPI = DisguiseCraft.getAPI();
     }
     private static Plugin instance;
 
@@ -53,6 +56,8 @@ public final class Plugin extends JavaPlugin {
     public void onEnable() {
         super.onEnable();
         setupDisguiseCraft();
+        protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager.addPacketListener(new TagPacketHandler(this, getServer().getPluginManager()));
         worldManager = new WorldManager(this);
         gameManager = new GameManager(this);
         gameManager.loadGameList();
@@ -87,7 +92,10 @@ public final class Plugin extends JavaPlugin {
     }
 
     public DisguiseCraftAPI getDisguiseCraftAPI() {
-        return dcAPI;
+        return disguiseCraftAPI;
     }
-    
+
+    public ProtocolManager getProtocolManager() {
+        return protocolManager;
+    }
 }

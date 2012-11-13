@@ -23,7 +23,7 @@ import org.bukkit.util.Vector;
  * @author Thomas
  */
 @GameInfo(name = "Volcano Madness", aliases = {"VM"}, pvp = false, authors = {"Tom"},
-gameTime = -1, description = "!")
+gameTime = -1, description = "!", teamAmount = 2)
 public class VolcanoMadness extends Minigame {
 
     @EventHandler
@@ -45,11 +45,12 @@ public class VolcanoMadness extends Minigame {
 
     @Override
     public void startGame() {
+        Location MinigameSpawn = plugin.getWorldManager().getMinigameWorld().getSpawnLocation();
         for (Player p : playing) {
-            Location l = new Location(plugin.getWorldManager().getMinigameWorld(), WorldUtils.getMinigameSpawn().getX() + Misc.getRandom(-4, 4),
-                    WorldUtils.getMinigameSpawn().getY() - 6,
-                    WorldUtils.getMinigameSpawn().getZ() + Misc.getRandom(-4, 4));
-            WorldUtils.teleportSafely(p,l);
+            Location l = new Location(plugin.getWorldManager().getMinigameWorld(), MinigameSpawn.getX() + Misc.getRandom(-4, 4),
+                    MinigameSpawn.getY() - 6,
+                    MinigameSpawn.getZ() + Misc.getRandom(-4, 4));
+            WorldUtils.teleportSafely(p, l);
         }
     }
 

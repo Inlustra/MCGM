@@ -5,13 +5,17 @@
 package com.mcgm.game;
 
 import com.mcgm.Plugin;
+import com.mcgm.game.event.ReceiveNameTagEvent;
 import com.mcgm.game.provider.GameInfo;
-import com.mcgm.manager.GameManager;
+import com.mcgm.player.Team;
 import com.mcgm.utils.Misc;
 import java.util.ArrayList;
-import javax.annotation.processing.SupportedAnnotationTypes;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 
 /**
  *
@@ -31,6 +35,9 @@ public abstract class Minigame implements Listener {
     public Player[] winners;
     public int credits;
     public ArrayList<Player> playing;
+    public Team[] teams;
+    public ChatColor[] teamColors = new ChatColor[]{ChatColor.RED, ChatColor.BLUE, ChatColor.GREEN, ChatColor.YELLOW,
+        ChatColor.DARK_PURPLE, ChatColor.AQUA, ChatColor.WHITE, ChatColor.BLACK};
     public Player[] startingPlayers;
 
     protected Minigame() {
@@ -42,14 +49,27 @@ public abstract class Minigame implements Listener {
         authors = f.authors();
         description = f.description();
         pvpEnabled = f.pvp();
+
         maxPlayers = f.maxPlayers();
-        teamAmount = f.teamAmount();
         gameTime = f.gameTime();
         playing = Plugin.getInstance().getGameManager().getPlaying();
         startingPlayers = playing.toArray(new Player[playing.size()]);
+        teamAmount = f.teamAmount();
+        teams = new Team[teamAmount];
+        if (teamAmount != -1) {
+            for (int i = 0; i < teamAmount; i++) {
+                teams[i] = new Team(teamColors[i]);
+            }
+            int currTeam = 0;
+            for (Player p : playing) {
+                Misc.outPrint(currTeam + "");
+                teams[currTeam].addPlayer(p);
+                currTeam = currTeam++ == teamAmount ? 0 : currTeam++;
+            }
+        }
         plugin.getWorldManager().getMinigameWorld().setPVP(pvpEnabled);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        
+
     }
 
     public void sendPlayingMessage(String s) {
@@ -116,5 +136,27 @@ public abstract class Minigame implements Listener {
 
     public Plugin getPlugin() {
         return plugin;
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onReceiveNameTagEvent(ReceiveNameTagEvent event) {
+        if (teams.length > 1) {
+            ChatColor c = getPlayerTeam(event.getWatched()).teamColor;
+            event.setTag(c + "[" + c.name() + "] " + event.getTag());
+        }
+    }
+
+    @EventHandler
+    public void playerChangeWorld(PlayerChangedWorldEvent e){
+        Misc.refreshPlayer(e.getPlayer());
+    }
+    
+    public Team getPlayerTeam(Player p) {
+        for (Team m : teams) {
+            if (m.getTeamPlayers().contains(p)) {
+                return m;
+            }
+        }
+        return null;
     }
 }

@@ -5,6 +5,7 @@
 package com.mcgm.manager;
 
 import com.mcgm.Plugin;
+import com.mcgm.config.MCPartyConfig;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameDefinition;
@@ -64,8 +65,9 @@ public class GameManager implements Listener {
     
     @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent e) {
-        e.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.DARK_PURPLE + "MCGM" + ChatColor.GREEN
-                + "! We currently have: " + ChatColor.GOLD + playing.size() + ChatColor.GREEN + " people playing" + ChatColor.DARK_PURPLE + " Minigames!");
+        
+        MCPartyConfig.sendMessage(e.getPlayer(), "MOTD", "MC");
+        
         Bukkit.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
             @Override
             public void run() {

@@ -4,7 +4,11 @@
  */
 package com.mcgm.utils;
 
+import com.google.common.collect.Lists;
+import com.mcgm.Plugin;
 import java.io.File;
+import java.util.List;
+import java.util.logging.Level;
 import org.bukkit.entity.Player;
 
 /**
@@ -12,6 +16,52 @@ import org.bukkit.entity.Player;
  * @author Tom
  */
 public class Misc {
+
+    public static void refreshPlayer(Player watched) {
+
+        int view = Plugin.getInstance().getServer().getViewDistance() * 16;
+        List<Player> observers = Lists.newArrayList();
+
+        // Get nearby observers
+        for (Player observer : getPlayersWithin(watched, view)) {
+            if (!observer.equals(watched) && observer.canSee(watched)) {
+                observers.add(observer);
+            }
+        }
+
+        // Send a new packet
+        refreshPlayer(watched, observers);
+    }
+
+    /**
+     * Refreshes the tag of the watched player for a list of observers.
+     *
+     * @param watched - the watched player.
+     * @param observers - the observers that needs to be refreshed.
+     */
+    public static void refreshPlayer(Player watched, List<Player> observers) {
+
+        try {
+            Plugin.getInstance().getProtocolManager().updateEntity(watched, observers);
+        } catch (Exception e) {
+        }
+    }
+
+    // Find players within a certain number of blocks
+    public static List<Player> getPlayersWithin(Player player, int distance) {
+
+        List<Player> res = Lists.newArrayList();
+        int d2 = distance * distance;
+
+        for (Player p : Plugin.getInstance().getServer().getOnlinePlayers()) {
+            if (p.getWorld() == player.getWorld()
+                    && p.getLocation().distanceSquared(player.getLocation()) <= d2) {
+
+                res.add(p);
+            }
+        }
+        return res;
+    }
 
     public static byte degreeToByte(float degree) {
         return (byte) ((int) degree * 256.0F / 360.0F);

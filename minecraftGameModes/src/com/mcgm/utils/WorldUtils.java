@@ -4,6 +4,7 @@
  */
 package com.mcgm.utils;
 
+import com.google.common.collect.Lists;
 import com.mcgm.Plugin;
 import com.mcgm.worlds.PlayerTeleport;
 import com.sk89q.worldedit.CuboidClipboard;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,11 +35,11 @@ import org.bukkit.entity.Player;
  * @author Thomas
  */
 public class WorldUtils {
-    
+
     public static String MAIN_WORLD = "world";
     public static String MINIGAME_WORLD = "minigameWorld";
     private static final Set<BlockFace> AROUND_BLOCK = EnumSet.noneOf(BlockFace.class);
-    
+
     static {
         AROUND_BLOCK.add(BlockFace.NORTH);
         AROUND_BLOCK.add(BlockFace.NORTH_EAST);
@@ -48,19 +50,34 @@ public class WorldUtils {
         AROUND_BLOCK.add(BlockFace.WEST);
         AROUND_BLOCK.add(BlockFace.NORTH_WEST);
     }
-    
+
+    private List<Player> getPlayersWithin(Player player, int distance) {
+
+        List<Player> res = Lists.newArrayList();
+        int d2 = distance * distance;
+
+        for (Player p : Plugin.getInstance().getServer().getOnlinePlayers()) {
+            if (p.getWorld() == player.getWorld()
+                    && p.getLocation().distanceSquared(player.getLocation()) <= d2) {
+
+                res.add(p);
+            }
+        }
+        return res;
+    }
+
     public static Location getMainSpawn() {
         return new Location(Plugin.getInstance().getWorldManager().getMainWorld(), 94, 179, 163);
     }
-    
+
     public static void teleportSafely(Player p, Location l) {
         Plugin.getInstance().getWorldManager().teleport(new PlayerTeleport(p, getSafeSpawnAroundABlock(l)));
     }
-    
+
     public static void teleport(Player p, Location l) {
         Plugin.getInstance().getWorldManager().teleport(new PlayerTeleport(p, l));
     }
-    
+
     public static Location getMinigameSpawn() {
         return Plugin.getInstance().getWorldManager().getMinigameWorld().getSpawnLocation();
     }
@@ -92,39 +109,39 @@ public class WorldUtils {
         }
         return null;
     }
-    
+
     public static boolean playerCanSpawnHereSafely(Location l) {
         if (l == null) {
             // Can't safely spawn at a null location!
             return false;
         }
-        
+
         World world = l.getWorld();
         Location actual = l.clone();
         Location upOne = l.clone();
         Location downOne = l.clone();
         upOne.setY(upOne.getY() + 1);
         downOne.setY(downOne.getY() - 1);
-        
+
         if (isSolidBlock(world.getBlockAt(actual).getType())
                 || isSolidBlock(upOne.getBlock().getType())) {
             return false;
         }
-        
+
         if (downOne.getBlock().getType() == Material.LAVA || downOne.getBlock().getType() == Material.STATIONARY_LAVA) {
             return false;
         }
-        
+
         if (downOne.getBlock().getType() == Material.FIRE) {
             return false;
         }
-        
+
         if (isBlockAboveAir(actual)) {
             return hasTwoBlocksofWaterBelow(actual);
         }
         return true;
     }
-    
+
     public static boolean hasTwoBlocksofWaterBelow(Location l) {
         if (l.getBlockY() < 0) {
             return false;
@@ -141,13 +158,13 @@ public class WorldUtils {
         }
         return hasTwoBlocksofWaterBelow(oneBelow);
     }
-    
+
     public static boolean isBlockAboveAir(Location l) {
         Location downOne = l.clone();
         downOne.setY(downOne.getY() - 1);
         return (downOne.getBlock().getType() == Material.AIR);
     }
-    
+
     private boolean checkAroundSpecificDiameter(Location checkLoc, int circle) {
         // Adjust the circle to get how many blocks to step out.
         // A radius of 3 makes the block step 1
@@ -200,7 +217,7 @@ public class WorldUtils {
         }
         return false;
     }
-    
+
     private Location checkAroundLocation(Location l, int diameter) {
         if (diameter % 2 == 0) {
             diameter += 1;
@@ -223,7 +240,7 @@ public class WorldUtils {
         }
         return null;
     }
-    
+
     private Location checkAboveAndBelowLocation(Location l, int tolerance, int radius) {
         // Tolerance must be an even number:
         if (tolerance % 2 != 0) {
@@ -258,10 +275,10 @@ public class WorldUtils {
             }
             currentLevel++;
         }
-        
+
         return null;
     }
-    
+
     public static Location[] getLocations(final File file, final Vector origin, String world, Material m) {
         ArrayList<Location> l = new ArrayList<>();
         try {
@@ -284,7 +301,7 @@ public class WorldUtils {
         }
         return l.toArray(new Location[l.size()]);
     }
-    
+
     public static Location[] getRadiusFrom(Location l, int rx, int ry, int rz) {
         ArrayList<Location> list = new ArrayList<>();
         for (int x = -rx; x < rx * 2; x++) {
@@ -296,13 +313,13 @@ public class WorldUtils {
         }
         return list.toArray(new Location[list.size()]);
     }
-    
+
     public static void setBlocks(Material t, Location... l) {
         for (Location loc : l) {
             loc.getBlock().setType(t);
         }
     }
-    
+
     public static void loadArea(final File file, final Vector origin, String world) {
         try {
             EditSession es = new EditSession(BukkitUtil.getLocalWorld(Bukkit.getWorld(world)), 999999999);
@@ -312,7 +329,7 @@ public class WorldUtils {
             Logger.getLogger(Misc.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public Location[] getLocationsOfType(Location center, Material t, int rx, int ry, int rz) {
         ArrayList<Location> list = new ArrayList<>();
         for (int x = -rx; x < rx * 2; x++) {
