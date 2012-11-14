@@ -5,6 +5,7 @@
 package com.mcgm.config;
 
 import com.mcgm.utils.Paths;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.command.CommandSender;
@@ -39,8 +40,8 @@ public class MCPartyConfig {
         cs.sendMessage(parse(key, inputs));
     }
 
-    public void sendMessage(CommandSender cs, String key) {
-        sendMessage(cs, key, null);
+    public static void sendMessage(CommandSender cs, String key) {
+        sendMessage(cs, key, (Object) null);
     }
 
     public static void sendMessage(CommandSender[] cs, String key, Object... inputs) {
@@ -50,7 +51,15 @@ public class MCPartyConfig {
     }
 
     public static void sendMessage(CommandSender[] cs, String key) {
-        sendMessage(cs, key, null);
+        sendMessage(cs, key, (Object) null);
+    }
+
+    public static void sendMessage(ArrayList<Player> players, String key) {
+        sendMessage(players, key, (String) null);
+    }
+
+    public static void sendMessage(ArrayList<Player> players, String key, String... inputs) {
+        sendMessage(players.toArray(new CommandSender[players.size()]), key, (Object) null);
     }
 
     public static void reloadConfig(CommandSender cs) {

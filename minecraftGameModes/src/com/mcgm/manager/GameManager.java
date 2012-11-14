@@ -37,14 +37,14 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * @author Tom
  */
 public class GameManager implements Listener {
-    
+
     private Minigame currentMinigame;
     private GameSource gameSrc;
     private List<GameDefinition> gameDefs;
     private String gameList;
     private Plugin plugin;
     private ArrayList<Player> playing;
-    
+
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent e) {
         Player p = e.getPlayer();
@@ -62,16 +62,16 @@ public class GameManager implements Listener {
             }
         }
     }
-    
+
     @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent e) {
-        
-        MCPartyConfig.sendMessage(e.getPlayer(), "MOTD", "MC");
-        
+
+        MCPartyConfig.sendMessage(e.getPlayer(), "MOTD", "" + playing.size());
+
         Bukkit.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
             @Override
             public void run() {
-                WorldUtils.teleportSafely(e.getPlayer(),WorldUtils.getMainSpawn());
+                WorldUtils.teleportSafely(e.getPlayer(), WorldUtils.getMainSpawn());
                 Post p = new Post(WebUtils.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
                     @Override
                     public void serverResponse(String response) {
@@ -83,7 +83,7 @@ public class GameManager implements Listener {
             }
         }, 10L);
     }
-    
+
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
@@ -98,7 +98,7 @@ public class GameManager implements Listener {
         }
     }
     private int voteTime = 180;
-    
+
     public GameManager(final Plugin p) {
         playing = new ArrayList<>();
         plugin = p;
@@ -127,7 +127,7 @@ public class GameManager implements Listener {
             }
         }, 0, 20L);
     }
-    
+
     public void loadManager() {
         Command spawn = new Command("spawn", "Sends player to spawn", "SPAWN", new ArrayList<String>()) {
             @Override
@@ -153,9 +153,9 @@ public class GameManager implements Listener {
                         performCountDown(5, gameFound);
                         return true;
                     }
-                    cs.sendMessage("§cCould not find game: §2" + name.trim());
+                    MCPartyConfig.sendMessage(cs, "gameNotFound", "" + name.trim());
                 } else {
-                    cs.sendMessage("§cWrong usage, Please use as follows: §2/vote <gamename>");
+                    MCPartyConfig.sendMessage(cs, "voteWrongUsage");
                 }
                 return true;
             }
@@ -164,6 +164,7 @@ public class GameManager implements Listener {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
                 playing.remove((Player) cs);
+                MCPartyConfig.sendMessage(cs, "removePlaying");
                 return true;
             }
         };
@@ -174,20 +175,19 @@ public class GameManager implements Listener {
                     for (Player p : playing) {
                         p.sendMessage(ChatColor.GOLD + cs.getName() + ChatColor.GREEN + " is now playing!");
                     }
+                    playing.add((Player) cs);
                     if (currentMinigame == null) {
                         if (playing.size() > 1) {
-                            cs.sendMessage(ChatColor.GOLD + "Cast your votes!");
+                            MCPartyConfig.sendMessage(cs, "votesMessage");
                             cs.sendMessage(gameList);
                         } else {
-                            cs.sendMessage(ChatColor.GOLD + "§cPlease wait until there are at least§2 2 players§c playing for voting (Wait until level countdown starts)");
+                            MCPartyConfig.sendMessage(cs, "notEnoughPlayers");
                         }
                     } else {
-                        cs.sendMessage(ChatColor.RED + "A game is currently in progress, please wait for the game to finish.");
+                        MCPartyConfig.sendMessage(cs, "inProgress", currentMinigame.getName());
                     }
-                    playing.add((Player) cs);
-                    
                 } else {
-                    cs.sendMessage(ChatColor.RED + "You're already playing!");
+                    MCPartyConfig.sendMessage(cs, "alreadyPlaying");
                 }
                 return true;
             }
@@ -215,15 +215,15 @@ public class GameManager implements Listener {
                                 addVote((Player) cs, gameFound);
                                 return true;
                             }
-                            cs.sendMessage("§cCould not find game: §2" + name.trim());
+                            MCPartyConfig.sendMessage(cs, "gameNotFound", name.trim());
                         } else {
-                            cs.sendMessage("§cPlease wait until there are at least§2 2 players§c playing (Wait until level countdown starts)");
+                            MCPartyConfig.sendMessage(cs, "notEnoughPlayers");
                         }
                     } else {
-                        cs.sendMessage("§cWrong usage, Please use as follows: §2/vote <gamename>");
+                        MCPartyConfig.sendMessage(cs, "voteWrongUsage");
                     }
                 } else {
-                    cs.sendMessage("§c Please type /play in order to join the queue");
+                    MCPartyConfig.sendMessage(cs, "mustPlay");
                 }
                 return true;
             }
@@ -238,7 +238,7 @@ public class GameManager implements Listener {
                         sender.sendMessage(gameFound.getDescription());
                         return true;
                     }
-                    sender.sendMessage("§cCould not find game: §2" + name.trim());
+                    MCPartyConfig.sendMessage(sender, "gameNotFound", name.trim());
                 }
                 return true;
             }
@@ -254,29 +254,28 @@ public class GameManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     List<Player> playersVoted = new ArrayList<>();
-    
+
     public void addVote(Player p, GameDefinition gdef) {
         if (!playersVoted.contains(p)) {
             playersVoted.add(p);
             gdef.votes++;
-            p.sendMessage(ChatColor.GREEN + "Vote for: " + ChatColor.GOLD + " " + gdef.getName() + ChatColor.GREEN + " counted!");
-            Bukkit.broadcastMessage(ChatColor.GOLD + gdef.getName() + ChatColor.GREEN + " votes: " + ChatColor.GOLD
-                    + gdef.votes + ChatColor.GREEN + " out of " + ChatColor.GOLD + playing.size());
+            MCPartyConfig.sendMessage(p, "addVote", gdef.getName());
+            MCPartyConfig.sendMessage(playing, "voteCounts", gdef.getName(), gdef.votes + "", playing.size() + "");
             if (playing.size() == playersVoted.size() && playing.size() > 1) {
                 performCountDown(5);
             }
         } else {
-            p.sendMessage("You've already voted!");
+            MCPartyConfig.sendMessage(p, "alreadyVoted", gdef.getName());
         }
-        
+
     }
-    
+
     public void performCountDown(final int time) {
         performCountDown(time, null);
     }
-    
+
     public void performCountDown(final int time, final GameDefinition game) {
-        
+
         GameDefinition gameToRun = game;
         if (game == null) {
             GameDefinition highestVoted = gameDefs.get(0);
@@ -287,13 +286,11 @@ public class GameManager implements Listener {
             }
             gameToRun = highestVoted;
         }
-        for (Player p : playing) {
-            p.sendMessage(ChatColor.WHITE + "A game has been chosen!");
-            p.sendMessage(ChatColor.WHITE + "Prepare for: " + ChatColor.AQUA + gameToRun.getName());
-        }
         
+            MCPartyConfig.sendMessage(playing, "chosenGame", gameToRun.getName());        
+
         plugin.getWorldManager().regenWorld(WorldUtils.MINIGAME_WORLD, true, "".equals(gameToRun.getSeed()) ? true : false, "" + gameToRun.getSeed());
-        
+
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
@@ -306,7 +303,7 @@ public class GameManager implements Listener {
         currentMinigame.generateGame();
         setTaskId(Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
             int i = 6;
-            
+
             @Override
             public void run() {
                 if (i > 0) {
@@ -320,15 +317,15 @@ public class GameManager implements Listener {
         }, 0, 20L));
     }
     private int id;
-    
+
     public void setTaskId(int id) {
         this.id = id;
     }
-    
+
     private void cancel() {
         Bukkit.getScheduler().cancelTask(id);
     }
-    
+
     public void loadGameList() {
         gameSrc = new GameSource(Paths.compiledDir);
         gameDefs = gameSrc.list();
@@ -340,7 +337,7 @@ public class GameManager implements Listener {
         gameList = sb.toString();
         Misc.outPrint(gameList);
     }
-    
+
     public GameDefinition getGame(String name) {
         for (GameDefinition def : gameDefs) {
             for (String alias : def.aliases) {
@@ -354,11 +351,11 @@ public class GameManager implements Listener {
         }
         return null;
     }
-    
+
     public ArrayList<Player> getPlaying() {
         return playing;
     }
-    
+
     public Plugin getPlugin() {
         return plugin;
     }
