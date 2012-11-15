@@ -17,6 +17,7 @@ import com.sk89q.worldedit.schematic.SchematicFormat;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -165,6 +166,28 @@ public class WorldUtils {
         return (downOne.getBlock().getType() == Material.AIR);
     }
 
+    public static void removeWater(Location[] l) {
+        for (Location loc : l) {
+            if (loc.getBlock().getType() == Material.WATER) {
+                loc.getBlock().setType(Material.AIR);
+            }
+        }
+    }
+
+    public static Location[] removeBlocksFromArray(Location[] l, Material m) {
+        ArrayList<Location> good = new ArrayList<>();
+        for (Location loc : l) {
+            if (loc.getBlock().getType() != m) {
+                good.add(loc);
+            }
+        }
+        return good.toArray(new Location[good.size()]);
+    }
+
+    public static void removeWater(Location l, int radius, int height) {
+        removeWater(getFilledCylinderAt(l, radius, height));
+    }
+
     private boolean checkAroundSpecificDiameter(Location checkLoc, int circle) {
         // Adjust the circle to get how many blocks to step out.
         // A radius of 3 makes the block step 1
@@ -308,6 +331,76 @@ public class WorldUtils {
             for (int y = -ry; y < ry * 2; y++) {
                 for (int z = -rz; z < rz * 2; z++) {
                     list.add(new Location(l.getWorld(), l.getX() + x, l.getY() + y, l.getZ() + z));
+                }
+            }
+        }
+        return list.toArray(new Location[list.size()]);
+    }
+
+    private static double lengthSq(double x, double y, double z) {
+        return (x * x) + (y * y) + (z * z);
+    }
+
+    private static double lengthSq(double x, double z) {
+        return (x * x) + (z * z);
+    }
+
+    public static Location[] getHollowCylinderAt(Location start, int radius, int height) {
+        ArrayList<Location> list = new ArrayList<>();
+        for (int y = start.getBlockY(); y < start.getBlockY() + height; y++) {
+            int f = 1 - radius;
+            int ddF_x = 1;
+            int ddF_y = -2 * radius;
+            int currentX = 0;
+            int currentZ = radius;
+            int startX = start.getBlockX();
+            int startZ = start.getBlockZ();
+
+            list.add(new Location(start.getWorld(), startX, y, startZ + radius));
+            list.add(new Location(start.getWorld(), startX, y, startZ - radius));
+            list.add(new Location(start.getWorld(), startX + radius, y, startZ));
+            list.add(new Location(start.getWorld(), startX - radius, y, startZ));
+
+            while (currentX < currentZ) {
+                // ddF_x == 2 * x + 1;
+                // ddF_y == -2 * y;
+                // f == x*x + y*y - radius*radius + 2*x - y + 1;
+                if (f >= 0) {
+                    currentZ--;
+                    ddF_y += 2;
+                    f += ddF_y;
+                }
+                currentX++;
+                ddF_x += 2;
+                f += ddF_x;
+                list.add(new Location(start.getWorld(), startX + currentX, y, startZ + currentZ));
+                list.add(new Location(start.getWorld(), startX - currentX, y, startZ + currentZ));
+                list.add(new Location(start.getWorld(), startX + currentX, y, startZ - currentZ));
+                list.add(new Location(start.getWorld(), startX - currentX, y, startZ - currentZ));
+                list.add(new Location(start.getWorld(), startX + currentZ, y, startZ + currentX));
+                list.add(new Location(start.getWorld(), startX - currentZ, y, startZ + currentX));
+                list.add(new Location(start.getWorld(), startX + currentZ, y, startZ - currentX));
+                list.add(new Location(start.getWorld(), startX - currentZ, y, startZ - currentX));
+            }
+        }
+        return list.toArray(new Location[list.size()]);
+    }
+
+    public static Location[] getFilledCylinderAt(Location loc, int r, int height) {
+        ArrayList<Location> list = new ArrayList<>();
+
+        int cx = loc.getBlockX();
+        int cy = loc.getBlockY();
+        int cz = loc.getBlockZ();
+        World w = loc.getWorld();
+        int rSquared = r * r;
+
+        for (int x = cx - r; x <= cx + r; x++) {
+            for (int y = cy - height; y <= cy + height; y++) {
+                for (int z = cz - r; z <= cz + r; z++) {
+                    if ((cx - x) * (cx - x) + (cz - z) * (cz - z) <= rSquared) {
+                        list.add(new Location(w, x, y, z));
+                    }
                 }
             }
         }

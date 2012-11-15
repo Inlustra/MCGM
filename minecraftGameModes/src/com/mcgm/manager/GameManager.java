@@ -81,7 +81,7 @@ public class GameManager implements Listener {
                 plugin.getPostManager().postImmediate(p);
                 plugin.reloadConfig();
             }
-        }, 10L);
+        }, 20L);
     }
 
     @EventHandler
@@ -102,7 +102,7 @@ public class GameManager implements Listener {
     public GameManager(final Plugin p) {
         playing = new ArrayList<>();
         plugin = p;
-        int taskID = p.getServer().getScheduler().scheduleAsyncRepeatingTask(p, new Runnable() {
+        int taskID = p.getServer().getScheduler().scheduleSyncRepeatingTask(p, new Runnable() {
             @Override
             public void run() {
                 if (currentMinigame != null) {

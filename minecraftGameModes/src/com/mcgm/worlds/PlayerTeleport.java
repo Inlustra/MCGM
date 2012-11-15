@@ -32,6 +32,11 @@ public class PlayerTeleport {
     }
 
     public void teleport() {
-        p.teleport(l);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Plugin.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                p.teleport(l);
+            }
+        });
     }
 }

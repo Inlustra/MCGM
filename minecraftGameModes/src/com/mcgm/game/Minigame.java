@@ -22,7 +22,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
  * @author Tom
  */
 public abstract class Minigame implements Listener {
-
+    
     public final Plugin plugin;
     public final String name;
     public final double version;
@@ -39,7 +39,7 @@ public abstract class Minigame implements Listener {
     public ChatColor[] teamColors = new ChatColor[]{ChatColor.RED, ChatColor.BLUE, ChatColor.GREEN, ChatColor.YELLOW,
         ChatColor.DARK_PURPLE, ChatColor.AQUA, ChatColor.WHITE, ChatColor.BLACK};
     public Player[] startingPlayers;
-
+    
     protected Minigame() {
         GameInfo f = this.getClass().getAnnotation(GameInfo.class);
         plugin = Plugin.getInstance();
@@ -49,13 +49,14 @@ public abstract class Minigame implements Listener {
         authors = f.authors();
         description = f.description();
         pvpEnabled = f.pvp();
-
         maxPlayers = f.maxPlayers();
         gameTime = f.gameTime();
         playing = Plugin.getInstance().getGameManager().getPlaying();
         startingPlayers = playing.toArray(new Player[playing.size()]);
         teamAmount = f.teamAmount();
-        teams = new Team[teamAmount];
+        if (teamAmount > 0) {
+            teams = new Team[teamAmount];
+        }
         if (teamAmount != -1) {
             for (int i = 0; i < teamAmount; i++) {
                 teams[i] = new Team(teamColors[i]);
@@ -69,75 +70,75 @@ public abstract class Minigame implements Listener {
         }
         plugin.getWorldManager().getMinigameWorld().setPVP(pvpEnabled);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-
+        
     }
-
+    
     public void sendPlayingMessage(String s) {
         for (Player p : playing) {
             p.sendMessage(s);
         }
     }
-
+    
     public abstract void generateGame();
-
+    
     public abstract void onTimeUp();
-
+    
     public abstract void startGame();
-
+    
     public abstract void onEnd();
-
+    
     public abstract void minigameTick();
-
+    
     public abstract void playerDisconnect(Player player);
-
+    
     public String getName() {
         return name;
     }
-
+    
     public double getVersion() {
         return version;
     }
-
+    
     public String[] getAuthors() {
         return authors;
     }
-
+    
     public String getDescription() {
         return description;
     }
-
+    
     public int getTeamAmount() {
         return teamAmount;
     }
-
+    
     public boolean isPvpEnabled() {
         return pvpEnabled;
     }
-
+    
     public int getMaxPlayers() {
         return maxPlayers;
     }
-
+    
     public int getGameTime() {
         return gameTime;
     }
-
+    
     public Player[] getWinners() {
         return winners;
     }
-
+    
     public int getCredits() {
         return credits;
     }
-
+    
     public ArrayList<Player> getPlaying() {
         return playing;
     }
-
+    
     public Plugin getPlugin() {
         return plugin;
     }
-
+    
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onReceiveNameTagEvent(ReceiveNameTagEvent event) {
         if (teams.length > 1) {
@@ -145,9 +146,9 @@ public abstract class Minigame implements Listener {
             event.setTag(c + "[" + c.name() + "] " + event.getTag());
         }
     }
-
+    
     @EventHandler
-    public void playerChangeWorld(PlayerChangedWorldEvent e){
+    public void playerChangeWorld(PlayerChangedWorldEvent e) {
         Misc.refreshPlayer(e.getPlayer());
     }
     

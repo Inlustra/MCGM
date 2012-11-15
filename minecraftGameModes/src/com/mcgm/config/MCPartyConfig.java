@@ -18,7 +18,7 @@ import org.bukkit.entity.Player;
  */
 public class MCPartyConfig {
 
-    private static Matcher inputMatcher = Pattern.compile("([~])").matcher("");
+    private static Matcher inputMatcher = Pattern.compile("~").matcher("");
     private static YamlConfiguration customConfig = YamlConfiguration.loadConfiguration(Paths.MCPartyConfig);
 
     public static String parse(String key, Object... inputs) {
@@ -33,7 +33,7 @@ public class MCPartyConfig {
             }
         }
         inputMatcher.appendTail(sb);
-        return sb.toString();
+        return sb.toString().trim();
     }
 
     public static void sendMessage(CommandSender cs, String key, Object... inputs) {
