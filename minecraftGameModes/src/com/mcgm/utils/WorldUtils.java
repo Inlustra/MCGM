@@ -17,7 +17,6 @@ import com.sk89q.worldedit.schematic.SchematicFormat;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -25,10 +24,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.CraftChunk;
 import org.bukkit.entity.Player;
 
 /**
@@ -410,6 +412,22 @@ public class WorldUtils {
     public static void setBlocks(Material t, Location... l) {
         for (Location loc : l) {
             loc.getBlock().setType(t);
+        }
+    }
+
+    public static void setBlockFast(Block b, int typeId, byte data) {
+        Chunk c = b.getChunk();
+        net.minecraft.server.Chunk chunk = ((CraftChunk) c).getHandle();
+        chunk.a(b.getX() & 15, b.getY(), b.getZ() & 15, typeId, data);
+    }
+
+    public static void setBlockFast(Location l, int typeId, byte data) {
+        setBlockFast(l.getBlock(), typeId, data);
+    }
+
+    public static void setBlocksFast(Material m, Location[] lc) {
+        for (Location l : lc) {
+            setBlockFast(l, m.getId(), (byte) 0);
         }
     }
 
