@@ -12,6 +12,7 @@ import java.util.HashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -112,6 +113,37 @@ public class ItemSlap extends Minigame {
         }
     }
 
+    public Sound itemSound(Material m) {
+        switch (m) {
+            //HEALS
+            case BAKED_POTATO:
+                return Sound.EAT;
+            case GRILLED_PORK:
+                return Sound.EAT;
+            case APPLE:
+                return Sound.EAT;
+            case BREAD:
+                return Sound.EAT;
+            case GOLDEN_APPLE:
+                return Sound.BURP;
+            case GOLDEN_CARROT:
+                return Sound.BURP;
+            //NonHealing
+            case AIR:
+                return Sound.HURT;
+            case IRON_SWORD:
+                return Sound.SKELETON_HURT;
+            case ANVIL:
+                return Sound.IRONGOLEM_HIT;
+            case RAW_FISH:
+                return Sound.SLIME_ATTACK;
+            case FEATHER:
+                return Sound.BREATH;
+            default:
+                return null;
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerMove(PlayerMoveEvent e) {
         synchronized (playing) {
@@ -145,6 +177,7 @@ public class ItemSlap extends Minigame {
             if (heal != -1 && pp > 100) {
                 e.getItem().remove();
                 sendPlayingMessage("Picked up healing item: " + heal);
+                plugin.getWorldManager().getMinigameWorld().playSound(e.getItem().getLocation(), itemSound(e.getItem().getItemStack().getType()), 1, 1);
                 pp = playerPercent.put(e.getPlayer(), pp - heal);
                 toCancel = true;
             }
@@ -169,6 +202,7 @@ public class ItemSlap extends Minigame {
             double knockback = 0.1 + (totalKnockback * (playerPercent.get((Player) event.getEntity()) / 100));
             event.getEntity().setVelocity(event.getDamager().getLocation().
                     getDirection().multiply(knockback));
+            plugin.getWorldManager().getMinigameWorld().playSound(event.getDamager().getLocation(), itemSound(((Player) event.getEntity()).getItemInHand().getType()), 1, 1);
             int percent = playerPercent.get((Player) event.getEntity()) + (int) itemDetails(playerMat)[1];
             playerPercent.put((Player) event.getEntity(), percent);
             showPlayerPercent((Player) event.getEntity());
@@ -209,6 +243,7 @@ public class ItemSlap extends Minigame {
                 Block location = (itemSpawns[Misc.getRandom(0, itemSpawns.length - 1)]).getBlock();
                 ItemStack item = new ItemStack(randomSpawn());
                 plugin.getWorldManager().getMinigameWorld().dropItem(location.getRelative(BlockFace.UP).getLocation(), item);
+                plugin.getWorldManager().getMinigameWorld().playSound(location.getLocation(), Sound.ITEM_PICKUP, 1, 1);
                 timeToItemSpawn = Misc.getRandom(1, 5);
             }
             timeToItemSpawn--;

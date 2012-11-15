@@ -8,7 +8,6 @@ import com.google.common.collect.Lists;
 import com.mcgm.Plugin;
 import java.io.File;
 import java.util.List;
-import java.util.logging.Level;
 import org.bukkit.entity.Player;
 
 /**
@@ -133,6 +132,17 @@ public class Misc {
             return sb.toString();
         }
         return "";
+    }
+
+    /**
+     *
+     * @param min The (included) lower bound of the range
+     * @param max The (included) upper bound of the range
+     *
+     * @return The random value in the range
+     */
+    public static double getRandom(double min, double max) {
+        return min + (Math.random() * (max - min));
     }
 
     public static int getRandom(int min, int max) {

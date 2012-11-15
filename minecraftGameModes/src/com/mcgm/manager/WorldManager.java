@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
  */
 public class WorldManager {
 
-    private Object teleportLock = new Object();
+    private final Object teleportLock = new Object();
     private Queue<PlayerTeleport> teleportQueue = new LinkedList<>();
     public HashMap<String, World> loadedWorlds = new HashMap<>();
     private Plugin plugin;

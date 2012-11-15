@@ -78,7 +78,6 @@ public class GameManager implements Listener {
                     }
                 };
                 plugin.getPostManager().postImmediate(p);
-                plugin.reloadConfig();
             }
         }, 20L);
     }
@@ -198,6 +197,13 @@ public class GameManager implements Listener {
                 return true;
             }
         };
+        Command reload = new Command("rlgames", "Simple list command", "LISTING", new ArrayList<String>()) {
+            @Override
+            public boolean execute(CommandSender cs, String string, String[] args) {
+                loadGameList(cs);
+                return true;
+            }
+        };
         Command vote = new Command("vote", "Simple vote command", "VOTING", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
@@ -242,6 +248,7 @@ public class GameManager implements Listener {
                 return true;
             }
         };
+        plugin.getCommandManager().addCommand(reload);
         plugin.getCommandManager().addCommand(list);
         plugin.getCommandManager().addCommand(vote);
         plugin.getCommandManager().addCommand(spawn);
@@ -285,8 +292,8 @@ public class GameManager implements Listener {
             }
             gameToRun = highestVoted;
         }
-        
-            MCPartyConfig.sendMessage(playing, "chosenGame", gameToRun.getName());        
+
+        MCPartyConfig.sendMessage(playing, "chosenGame", gameToRun.getName());
 
         plugin.getWorldManager().regenWorld(WorldUtils.MINIGAME_WORLD, true, "".equals(gameToRun.getSeed()) ? true : false, "" + gameToRun.getSeed());
 
@@ -325,16 +332,17 @@ public class GameManager implements Listener {
         Bukkit.getScheduler().cancelTask(id);
     }
 
-    public void loadGameList() {
+    public void loadGameList(CommandSender cs) {
         gameSrc = new GameSource(Paths.compiledDir);
         gameDefs = gameSrc.list();
         StringBuilder sb = new StringBuilder();
         for (GameDefinition def : gameDefs) {
-            Misc.outPrintWarning(def.getName());
             sb.append(def.getName()).append("(").append(Misc.buildString(def.aliases, ",")).append(") ");
         }
         gameList = sb.toString();
-        Misc.outPrint(gameList);
+        if (cs != null) {
+            cs.sendMessage("Reloaded games: " + gameList);
+        }
     }
 
     public GameDefinition getGame(String name) {

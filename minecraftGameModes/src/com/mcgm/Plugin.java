@@ -8,6 +8,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.mcgm.config.MCPartyConfig;
 import com.mcgm.manager.CommandManager;
+import com.mcgm.manager.FileManager;
 import com.mcgm.manager.GameManager;
 import com.mcgm.manager.PostManager;
 import com.mcgm.manager.WorldManager;
@@ -16,7 +17,6 @@ import com.mcgm.utils.WorldUtils;
 import java.util.ArrayList;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import pgDev.bukkit.DisguiseCraft.DisguiseCraft;
 import pgDev.bukkit.DisguiseCraft.api.DisguiseCraftAPI;
@@ -33,6 +33,7 @@ public final class Plugin extends JavaPlugin {
     private PostManager postManager;
     private DisguiseCraftAPI disguiseCraftAPI;
     private ProtocolManager protocolManager;
+    private FileManager fileManager;
 
     public void setupDisguiseCraft() {
         disguiseCraftAPI = DisguiseCraft.getAPI();
@@ -63,6 +64,7 @@ public final class Plugin extends JavaPlugin {
             }
         };
         commandManager.addCommand(rlConfig);
+        fileManager = new FileManager(this);
     }
 
     @Override
@@ -73,7 +75,7 @@ public final class Plugin extends JavaPlugin {
         protocolManager.addPacketListener(new TagPacketHandler(this, getServer().getPluginManager()));
         worldManager = new WorldManager(this);
         gameManager = new GameManager(this);
-        gameManager.loadGameList();
+        gameManager.loadGameList(null);
         postManager = new PostManager(this);
         gameManager.loadManager();
         worldManager.loadWorlds(WorldUtils.MAIN_WORLD,

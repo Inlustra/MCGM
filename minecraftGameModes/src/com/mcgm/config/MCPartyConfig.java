@@ -6,8 +6,19 @@ package com.mcgm.config;
 
 import com.mcgm.Plugin;
 import com.mcgm.utils.Paths;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
@@ -24,7 +35,7 @@ public class MCPartyConfig {
 
     private static Matcher inputMatcher = Pattern.compile("~").matcher("");
     private static YamlConfiguration customConfig = YamlConfiguration.loadConfiguration(Paths.MCPartyConfig);
-    
+
     public static String parse(String key, Object... inputs) {
         String value = customConfig.getString(key);
         inputMatcher.reset(value);
@@ -38,6 +49,18 @@ public class MCPartyConfig {
         }
         inputMatcher.appendTail(sb);
         return sb.toString().trim();
+    }
+
+    public static float getFloat(String key) {
+        return (float) customConfig.getDouble(key, -1);
+    }
+
+    public static boolean getBoolean(String key) {
+        return customConfig.getBoolean(key);
+    }
+
+    public static double getDouble(String key) {
+        return customConfig.getDouble(key, -1);
     }
 
     public static int getInt(String key) {

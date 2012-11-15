@@ -247,10 +247,15 @@ public class VolcanoMadness extends Minigame {
 
     public void fireBlock(Location l, Material m) {
         FallingBlock block = plugin.getWorldManager().getMinigameWorld().spawnFallingBlock(l, m, (byte) 0);
-        float x = (float) -1 + (float) (Math.random() * ((1 - -1) + 1));
-        float y = (float) -1.3 + Misc.getRandom(0, -1);
-        float z = (float) -1 + (float) (Math.random() * ((1 - -1) + 1));
-        block.setVelocity(new Vector(x, y, z));
+        float maxx = MCPartyConfig.getFloat("VolcanoMadness.fireMaxX");
+        float maxy = MCPartyConfig.getFloat("VolcanoMadness.fireMaxY");
+        float maxz = MCPartyConfig.getFloat("VolcanoMadness.fireMaxZ");
+        float minx = MCPartyConfig.getFloat("VolcanoMadness.fireMinX");
+        float miny = MCPartyConfig.getFloat("VolcanoMadness.fireMinY");
+        float minz = MCPartyConfig.getFloat("VolcanoMadness.fireMinZ");
+        Vector v = new Vector(Misc.getRandom(minx, maxx), Misc.getRandom(miny, maxy), Misc.getRandom(minz, maxz));
+        block.setVelocity(v);
+        sendPlayingMessage(v.toString());
     }
 
     public void fireBlock(Location l, Material m, int amt) {
