@@ -66,12 +66,11 @@ public class GameManager implements Listener {
     @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent e) {
 
-        MCPartyConfig.sendMessage(e.getPlayer(), "MOTD", "" + playing.size());
-
+        MCPartyConfig.sendMessage(e.getPlayer(), "Spawn.Message", "" + playing.size());
         Bukkit.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
             @Override
             public void run() {
-                WorldUtils.teleportSafely(e.getPlayer(), WorldUtils.getMainSpawn());
+                WorldUtils.teleportSafely(e.getPlayer(), MCPartyConfig.getLocation("Spawn.Prison", true));
                 Post p = new Post(WebUtils.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
                     @Override
                     public void serverResponse(String response) {

@@ -122,14 +122,17 @@ public class Misc {
     }
 
     public static String buildPlayerString(Player[] str, String separator) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < str.length; i++) {
-            sb.append(str[i].getName());
-            if (i != str.length - 1) {
-                sb.append(separator);
+        if (str.length >= 1) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < str.length; i++) {
+                sb.append(str[i].getName());
+                if (i != str.length - 1) {
+                    sb.append(separator);
+                }
             }
+            return sb.toString();
         }
-        return sb.toString();
+        return "";
     }
 
     public static int getRandom(int min, int max) {

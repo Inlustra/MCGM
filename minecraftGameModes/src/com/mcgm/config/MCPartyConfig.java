@@ -4,10 +4,14 @@
  */
 package com.mcgm.config;
 
+import com.mcgm.Plugin;
 import com.mcgm.utils.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -20,7 +24,7 @@ public class MCPartyConfig {
 
     private static Matcher inputMatcher = Pattern.compile("~").matcher("");
     private static YamlConfiguration customConfig = YamlConfiguration.loadConfiguration(Paths.MCPartyConfig);
-
+    
     public static String parse(String key, Object... inputs) {
         String value = customConfig.getString(key);
         inputMatcher.reset(value);
@@ -34,6 +38,27 @@ public class MCPartyConfig {
         }
         inputMatcher.appendTail(sb);
         return sb.toString().trim();
+    }
+
+    public static int getInt(String key) {
+        return customConfig.getInt(key, -1);
+    }
+    private static HashMap<String, Location> locationCache = new HashMap<>();
+
+    public static Location getLocation(String key, boolean yawpitch) {
+        if (locationCache.containsKey(key)) {
+            return locationCache.get(key);
+        } else {
+            Location l = yawpitch ? new Location(Plugin.getInstance().getWorldManager().getMainWorld(),
+                    getInt(key + "X"), getInt(key + "Y"), getInt(key + "Z"), getInt(key + "Yaw"), getInt(key + "Pitch"))
+                    : new Location(Bukkit.getWorld(key + "World"), getInt(key + "X"), getInt(key + "Y"), getInt(key + "Z"));
+            locationCache.put(key, l);
+            return l;
+        }
+    }
+
+    public static Location getLocation(String key) {
+        return getLocation(key, false);
     }
 
     public static void sendMessage(CommandSender cs, String key, Object... inputs) {
@@ -59,13 +84,14 @@ public class MCPartyConfig {
     }
 
     public static void sendMessage(ArrayList<Player> players, String key, String... inputs) {
-        sendMessage(players.toArray(new CommandSender[players.size()]), key, (Object) null);
+        sendMessage(players.toArray(new CommandSender[players.size()]), key, (Object[]) inputs);
     }
 
     public static void reloadConfig(CommandSender cs) {
         customConfig = YamlConfiguration.loadConfiguration(Paths.MCPartyConfig);
+        locationCache.clear();
         if (cs != null) {
-            sendMessage(cs, "Reloaded Config");
+            cs.sendMessage("Reloaded Config");
         }
     }
 }

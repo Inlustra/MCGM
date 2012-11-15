@@ -6,12 +6,17 @@ package com.mcgm;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.mcgm.config.MCPartyConfig;
 import com.mcgm.manager.CommandManager;
 import com.mcgm.manager.GameManager;
 import com.mcgm.manager.PostManager;
 import com.mcgm.manager.WorldManager;
 import com.mcgm.player.TagPacketHandler;
 import com.mcgm.utils.WorldUtils;
+import java.util.ArrayList;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import pgDev.bukkit.DisguiseCraft.DisguiseCraft;
 import pgDev.bukkit.DisguiseCraft.api.DisguiseCraftAPI;
@@ -50,6 +55,14 @@ public final class Plugin extends JavaPlugin {
     public void onLoad() {
         super.onLoad();
         commandManager = new CommandManager(this);
+        Command rlConfig = new Command("reloadConfig", "remove player from playing list", "LOBBY", new ArrayList<String>()) {
+            @Override
+            public boolean execute(CommandSender cs, String string, String[] args) {
+                MCPartyConfig.reloadConfig(cs);
+                return true;
+            }
+        };
+        commandManager.addCommand(rlConfig);
     }
 
     @Override
