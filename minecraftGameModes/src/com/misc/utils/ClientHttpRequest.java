@@ -1,4 +1,4 @@
-package org;
+package com.misc.utils;
 
 import java.net.URLConnection;
 import java.net.URL;

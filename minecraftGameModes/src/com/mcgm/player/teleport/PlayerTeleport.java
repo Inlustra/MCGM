@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mcgm.worlds;
+package com.mcgm.player.teleport;
 
 import com.mcgm.Plugin;
 import org.bukkit.Bukkit;

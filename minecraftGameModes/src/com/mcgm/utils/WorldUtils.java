@@ -6,7 +6,7 @@ package com.mcgm.utils;
 
 import com.google.common.collect.Lists;
 import com.mcgm.Plugin;
-import com.mcgm.worlds.PlayerTeleport;
+import com.mcgm.player.teleport.PlayerTeleport;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -74,11 +74,11 @@ public class WorldUtils {
     }
 
     public static void teleportSafely(Player p, Location l) {
-        Plugin.getInstance().getWorldManager().teleport(new PlayerTeleport(p, getSafeSpawnAroundABlock(l)));
+        Plugin.getInstance().getPlayerManager().teleport(new PlayerTeleport(p, getSafeSpawnAroundABlock(l)));
     }
 
     public static void teleport(Player p, Location l) {
-        Plugin.getInstance().getWorldManager().teleport(new PlayerTeleport(p, l));
+        Plugin.getInstance().getPlayerManager().teleport(new PlayerTeleport(p, l));
     }
 
     public static Location getMinigameSpawn() {

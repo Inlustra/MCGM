@@ -11,7 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.ClientHttpRequest;
+import com.misc.utils.ClientHttpRequest;
 import org.json.simple.JSONObject;
 
 /**

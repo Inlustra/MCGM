@@ -316,7 +316,9 @@ public class GameManager implements Listener {
                     i--;
                     currentMinigame.sendPlayingMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "" + i + "...");
                 } else {
-                    currentMinigame.startGame();
+                    if (currentMinigame != null) {
+                        currentMinigame.startGame();
+                    }
                     cancel();
                 }
             }

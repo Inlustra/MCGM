@@ -7,7 +7,7 @@ package com.mcgm.manager;
 import com.mcgm.Plugin;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.WorldUtils;
-import com.mcgm.worlds.PlayerTeleport;
+import com.mcgm.player.teleport.PlayerTeleport;
 import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -29,8 +29,6 @@ import org.bukkit.entity.Player;
  */
 public class WorldManager {
 
-    private final Object teleportLock = new Object();
-    private Queue<PlayerTeleport> teleportQueue = new LinkedList<>();
     public HashMap<String, World> loadedWorlds = new HashMap<>();
     private Plugin plugin;
 
@@ -44,33 +42,6 @@ public class WorldManager {
 
     public WorldManager(Plugin p) {
         this.plugin = p;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (;;) {
-                    synchronized (teleportLock) {
-                        try {
-                            while (!teleportQueue.isEmpty()) {
-                                teleportQueue.poll().teleport();
-                            }
-                            teleportLock.wait();
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(PostManager.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-            }
-        }).start();
-    }
-
-    public void teleport(PlayerTeleport t) {
-        if (t.getL().getWorld() == null) {
-            loadWorlds(t.getL().getWorld().getName());
-        }
-        synchronized (teleportLock) {
-            teleportQueue.add(t);
-            teleportLock.notifyAll();
-        }
     }
 
     public void loadWorlds(String... worlds) {

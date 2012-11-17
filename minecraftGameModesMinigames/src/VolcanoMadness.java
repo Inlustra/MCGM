@@ -255,7 +255,6 @@ public class VolcanoMadness extends Minigame {
         float minz = MCPartyConfig.getFloat("VolcanoMadness.fireMinZ");
         Vector v = new Vector(Misc.getRandom(minx, maxx), Misc.getRandom(miny, maxy), Misc.getRandom(minz, maxz));
         block.setVelocity(v);
-        sendPlayingMessage(v.toString());
     }
 
     public void fireBlock(Location l, Material m, int amt) {

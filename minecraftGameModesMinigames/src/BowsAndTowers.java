@@ -40,15 +40,16 @@ public class BowsAndTowers extends Minigame {
     public void onPlayerMove(PlayerMoveEvent e) {
         if (e.getPlayer().getWorld() == plugin.getWorldManager().getMinigameWorld()) {
             Location playerLoc = e.getPlayer().getLocation();
-            
-            double distanceNeeded = 100 - playerStartHeight.get(e.getPlayer());
-            double blocksMoved = playerLoc.getY() - playerStartHeight.get(e.getPlayer());
+            if (playerStartHeight.containsKey(e.getPlayer())) {
+                double distanceNeeded = 100 - playerStartHeight.get(e.getPlayer());
+                double blocksMoved = playerLoc.getY() - playerStartHeight.get(e.getPlayer());
 
-            double difference = (blocksMoved/distanceNeeded)*100;
-            
-            e.getPlayer().setLevel((int)difference);
-            if (playerLoc.getY() > 100) {
-                Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(this, false, e.getPlayer()));
+                double difference = (blocksMoved / distanceNeeded) * 100;
+
+                e.getPlayer().setLevel((int) difference);
+                if (playerLoc.getY() > 100) {
+                    Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(this, false, e.getPlayer()));
+                }
             }
         }
     }
@@ -80,19 +81,18 @@ public class BowsAndTowers extends Minigame {
         }
     }
     int timer = 0;
-    
     ArrayList<Entity> oldChickens = new ArrayList<>();
-    
+
     @Override
     public void minigameTick() {
         timer++;
         if (timer == 5) {
-            
-            for(Entity e : oldChickens){
+
+            for (Entity e : oldChickens) {
                 e.setFireTicks(500);
             }
             oldChickens.clear();
-            
+
             for (Player p : playing) {
                 for (int i = 0; i < playing.size() * 5; i++) {
                     Location mobs = new Location(plugin.getWorldManager().getMinigameWorld(), xAvg + Misc.getRandom(-10, 10), yAvg + Misc.getRandom(5, 15), zAvg - Misc.getRandom(-10, 10));
@@ -129,8 +129,8 @@ public class BowsAndTowers extends Minigame {
             }
             Location teleportLocation = new Location(spawn.getWorld(), towerCore.getX() + 0.5, towerCore.getY(), towerCore.getZ() + 0.5);
             p.teleport(teleportLocation);
-            
-            playerStartHeight.put(p, (double)teleportLocation.getBlockY());
+
+            playerStartHeight.put(p, (double) teleportLocation.getBlockY());
             p.setLevel(0);
 
             PlayerInventory inventory = p.getInventory();

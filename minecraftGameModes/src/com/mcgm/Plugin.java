@@ -12,6 +12,7 @@ import com.mcgm.manager.FileManager;
 import com.mcgm.manager.GameManager;
 import com.mcgm.manager.PostManager;
 import com.mcgm.manager.WorldManager;
+import com.mcgm.player.PlayerManager;
 import com.mcgm.player.TagPacketHandler;
 import com.mcgm.utils.WorldUtils;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public final class Plugin extends JavaPlugin {
     private DisguiseCraftAPI disguiseCraftAPI;
     private ProtocolManager protocolManager;
     private FileManager fileManager;
+    private PlayerManager playerManager;
 
     public void setupDisguiseCraft() {
         disguiseCraftAPI = DisguiseCraft.getAPI();
@@ -77,6 +79,7 @@ public final class Plugin extends JavaPlugin {
         gameManager = new GameManager(this);
         gameManager.loadGameList(null);
         postManager = new PostManager(this);
+        playerManager = new PlayerManager(this);
         gameManager.loadManager();
         worldManager.loadWorlds(WorldUtils.MAIN_WORLD,
                 WorldUtils.MINIGAME_WORLD);
@@ -112,5 +115,9 @@ public final class Plugin extends JavaPlugin {
 
     public ProtocolManager getProtocolManager() {
         return protocolManager;
+    }
+
+    public PlayerManager getPlayerManager() {
+        return playerManager;
     }
 }
