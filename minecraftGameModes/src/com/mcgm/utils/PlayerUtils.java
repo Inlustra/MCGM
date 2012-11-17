@@ -22,8 +22,7 @@ public class PlayerUtils {
         p.setExp(0);
         Plugin.getInstance().getDisguiseCraftAPI().undisguisePlayer(p);
         if (teleport) {
-            p.teleport(WorldUtils.getMainSpawn());
+            WorldUtils.teleport(p, WorldUtils.getMainSpawn());
         }
     }
-    
 }

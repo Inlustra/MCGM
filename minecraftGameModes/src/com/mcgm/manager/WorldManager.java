@@ -40,8 +40,8 @@ public class WorldManager {
         return loadedWorlds.get(WorldUtils.MINIGAME_WORLD);
     }
 
-    public WorldManager(Plugin p) {
-        this.plugin = p;
+    public WorldManager(Plugin plugin) {
+        this.plugin = plugin;
     }
 
     public void loadWorlds(String... worlds) {

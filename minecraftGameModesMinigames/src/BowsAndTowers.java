@@ -3,6 +3,7 @@ import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
+import com.mcgm.utils.WorldUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.bukkit.Bukkit;
@@ -63,7 +64,7 @@ public class BowsAndTowers extends Minigame {
             makeLayer(playerTowers.get(killer).getBlock(), Material.FENCE, false);
             killer.playSound(killer.getLocation(), Sound.BURP, 1f, 1f);
             Location teleportLocation = new Location(playerTowers.get(killer).getWorld(), playerTowers.get(killer).getX() + 0.5, playerTowers.get(killer).getY(), playerTowers.get(killer).getZ() + 0.5, killer.getLocation().getYaw(), killer.getLocation().getPitch());
-            killer.teleport(teleportLocation);
+            WorldUtils.teleport(killer, teleportLocation);
 
             for (Player p : playing) {
                 x += p.getLocation().getX();
@@ -128,7 +129,7 @@ public class BowsAndTowers extends Minigame {
                 }
             }
             Location teleportLocation = new Location(spawn.getWorld(), towerCore.getX() + 0.5, towerCore.getY(), towerCore.getZ() + 0.5);
-            p.teleport(teleportLocation);
+            WorldUtils.teleport(p,teleportLocation);
 
             playerStartHeight.put(p, (double) teleportLocation.getBlockY());
             p.setLevel(0);

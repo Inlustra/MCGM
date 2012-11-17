@@ -57,7 +57,7 @@ public class ItemSlap extends Minigame {
         } else {
             playerPercent.put(p, 100);
             showPlayerPercent(p);
-            p.teleport(playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
+            WorldUtils.teleport(p,playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
             playerLives.put(p, LivesLeft -= 1);
             p.getInventory().clear();
             p.setHealth(20);
@@ -280,7 +280,7 @@ public class ItemSlap extends Minigame {
     public void startGame() {
         for (Player p : playing) {
             Location teleport = playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)];
-            p.teleport(teleport);
+            WorldUtils.teleport(p,teleport);
             playerPercent.put(p, 100);
             playerLives.put(p, 10);
             PlayerInventory inventory = p.getInventory();

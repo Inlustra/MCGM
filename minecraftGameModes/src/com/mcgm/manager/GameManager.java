@@ -39,6 +39,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class GameManager implements Listener {
 
     private Minigame currentMinigame;
+    private Minigame lobbyMinigame;
     private GameSource gameSrc;
     private List<GameDefinition> gameDefs;
     private String gameList;

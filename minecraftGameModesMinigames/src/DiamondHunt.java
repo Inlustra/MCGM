@@ -4,6 +4,7 @@ import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
+import com.mcgm.utils.WorldUtils;
 import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -108,7 +109,7 @@ public class DiamondHunt extends Minigame {
     public void startGame() {
         for (Player p : playing) {
             Location teleport = new Location(cube.getWorld(), cube.getBlockX() + Misc.getRandom(1, 20), cube.getBlockY() + 1, cube.getBlockZ() + Misc.getRandom(1, 20));
-            p.teleport(teleport);
+            WorldUtils.teleport(p,teleport);
             PlayerInventory inventory = p.getInventory();
             inventory.clear();
             ItemStack pick = new ItemStack(Material.DIAMOND_PICKAXE, 1);

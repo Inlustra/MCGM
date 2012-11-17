@@ -39,7 +39,7 @@ public class MobAttack extends Minigame {
     public void startGame() {
         for (Player p : playing) {
             Location teleport = WorldUtils.getMainSpawn();
-            p.teleport(teleport);
+            WorldUtils.teleport(p,teleport);
             PlayerInventory inventory = p.getInventory();
             inventory.clear();
         }

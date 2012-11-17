@@ -52,7 +52,7 @@ public class BurningBuckets extends Minigame {
         for (Player p : playing) {
             System.out.println(spawns.length);
             Location teleport = spawns[Misc.getRandom(1, spawns.length)];
-            p.teleport(teleport);
+            WorldUtils.teleport(p,teleport);
             
             PlayerInventory inventory = p.getInventory();
             inventory.clear();

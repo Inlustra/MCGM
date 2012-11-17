@@ -65,7 +65,7 @@ public class TremblingBlocks extends Minigame {
             }
             if (playerLoc.getY() < 130) {
                 e.getPlayer().setHealth(0);
-                e.getPlayer().teleport(plugin.getWorldManager().getMainWorld().getSpawnLocation());
+                WorldUtils.teleport(e.getPlayer(), plugin.getWorldManager().getMainWorld().getSpawnLocation());
             }
         }
     }
@@ -93,7 +93,7 @@ public class TremblingBlocks extends Minigame {
         for (Player p : playing) {
             System.out.println(spawns.length);
             Location teleport = spawns[Misc.getRandom(1, spawns.length)];
-            p.teleport(teleport);
+            WorldUtils.teleport(p,teleport);
             LastLocation.put(p, teleport);
             PlayerInventory inventory = p.getInventory();
             inventory.clear();
