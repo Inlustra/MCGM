@@ -4,7 +4,7 @@
  */
 package com.mcgm.manager;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.config.MCPartyConfig;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
@@ -43,8 +43,38 @@ public class GameManager implements Listener {
     private GameSource gameSrc;
     private List<GameDefinition> gameDefs;
     private String gameList;
-    private Plugin plugin;
+    private MCPartyCore plugin;
     private ArrayList<Player> playing;
+    private int voteTime = 180;
+
+    public GameManager(final MCPartyCore p) {
+        playing = new ArrayList<>();
+        plugin = p;
+        int taskID = p.getServer().getScheduler().scheduleSyncRepeatingTask(p, new Runnable() {
+            @Override
+            public void run() {
+                if (currentMinigame != null) {
+                    currentMinigame.gameTime--;
+                    if (currentMinigame.gameTime > 0) {
+                        for (Player p : playing) {
+                            p.setLevel(currentMinigame.gameTime);
+                        }
+                    }
+                    currentMinigame.minigameTick();
+                } else {
+                    if (playing.size() > 1) {
+                        for (Player p : playing) {
+                            p.setLevel(voteTime);
+                        }
+                        if (voteTime == 0) {
+                            performCountDown(5);
+                        }
+                        voteTime--;
+                    }
+                }
+            }
+        }, 0, 20L);
+    }
 
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent e) {
@@ -95,36 +125,6 @@ public class GameManager implements Listener {
             currentMinigame = null;
             voteTime = 180;
         }
-    }
-    private int voteTime = 180;
-
-    public GameManager(final Plugin p) {
-        playing = new ArrayList<>();
-        plugin = p;
-        int taskID = p.getServer().getScheduler().scheduleSyncRepeatingTask(p, new Runnable() {
-            @Override
-            public void run() {
-                if (currentMinigame != null) {
-                    currentMinigame.gameTime--;
-                    if (currentMinigame.gameTime > 0) {
-                        for (Player p : playing) {
-                            p.setLevel(currentMinigame.gameTime);
-                        }
-                    }
-                    currentMinigame.minigameTick();
-                } else {
-                    if (playing.size() > 1) {
-                        for (Player p : playing) {
-                            p.setLevel(voteTime);
-                        }
-                        if (voteTime == 0) {
-                            performCountDown(5);
-                        }
-                        voteTime--;
-                    }
-                }
-            }
-        }, 0, 20L);
     }
 
     public void loadManager() {
@@ -366,7 +366,17 @@ public class GameManager implements Listener {
         return playing;
     }
 
-    public Plugin getPlugin() {
+    public MCPartyCore getPlugin() {
         return plugin;
     }
+
+    public GameSource getGameSrc() {
+        return gameSrc;
+    }
+
+    public List<GameDefinition> getGameDefs() {
+        return gameDefs;
+    }
+    
+    
 }

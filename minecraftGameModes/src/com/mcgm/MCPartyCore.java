@@ -7,10 +7,12 @@ package com.mcgm;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.mcgm.config.MCPartyConfig;
+import com.mcgm.game.sign.MinigameSignHandler;
 import com.mcgm.manager.CommandManager;
 import com.mcgm.manager.FileManager;
 import com.mcgm.manager.GameManager;
 import com.mcgm.manager.PostManager;
+import com.mcgm.manager.SignManager;
 import com.mcgm.manager.WorldManager;
 import com.mcgm.player.PlayerManager;
 import com.mcgm.player.TagPacketHandler;
@@ -26,7 +28,7 @@ import pgDev.bukkit.DisguiseCraft.api.DisguiseCraftAPI;
  *
  * @author Tom
  */
-public final class Plugin extends JavaPlugin {
+public final class MCPartyCore extends JavaPlugin {
 
     private CommandManager commandManager;
     private WorldManager worldManager;
@@ -36,20 +38,17 @@ public final class Plugin extends JavaPlugin {
     private ProtocolManager protocolManager;
     private FileManager fileManager;
     private PlayerManager playerManager;
+    private SignManager signManager;
+    private static MCPartyCore instance;
 
-    public void setupDisguiseCraft() {
-        disguiseCraftAPI = DisguiseCraft.getAPI();
-    }
-    private static Plugin instance;
-
-    public static Plugin getInstance() {
-        synchronized (Plugin.class) {
+    public static MCPartyCore getInstance() {
+        synchronized (MCPartyCore.class) {
             return instance;
         }
     }
 
-    public Plugin() {
-        synchronized (Plugin.class) {
+    public MCPartyCore() {
+        synchronized (MCPartyCore.class) {
             instance = this;
         }
     }
@@ -72,7 +71,7 @@ public final class Plugin extends JavaPlugin {
     @Override
     public void onEnable() {
         super.onEnable();
-        setupDisguiseCraft();
+        disguiseCraftAPI = DisguiseCraft.getAPI();
         protocolManager = ProtocolLibrary.getProtocolManager();
         protocolManager.addPacketListener(new TagPacketHandler(this, getServer().getPluginManager()));
         worldManager = new WorldManager(this);
@@ -80,6 +79,7 @@ public final class Plugin extends JavaPlugin {
         gameManager.loadGameList(null);
         postManager = new PostManager(this);
         playerManager = new PlayerManager(this);
+        signManager = new SignManager(this);
         gameManager.loadManager();
         worldManager.loadWorlds(WorldUtils.MAIN_WORLD,
                 WorldUtils.MINIGAME_WORLD);
@@ -87,6 +87,7 @@ public final class Plugin extends JavaPlugin {
         worldManager.loadedWorlds.get(WorldUtils.MAIN_WORLD).setSpawnLocation(WorldUtils.getMainSpawn().getBlockX(),
                 WorldUtils.getMainSpawn().getBlockY(),
                 WorldUtils.getMainSpawn().getBlockZ());
+        signManager.addSignHandler(new MinigameSignHandler("MCParty"));
     }
 
     @Override
@@ -113,11 +114,19 @@ public final class Plugin extends JavaPlugin {
         return disguiseCraftAPI;
     }
 
+    public FileManager getFileManager() {
+        return fileManager;
+    }
+
     public ProtocolManager getProtocolManager() {
         return protocolManager;
     }
 
     public PlayerManager getPlayerManager() {
         return playerManager;
+    }
+
+    public SignManager getSignManager() {
+        return signManager;
     }
 }

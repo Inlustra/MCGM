@@ -4,7 +4,7 @@
  */
 package com.mcgm.manager;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.config.MCPartyConfig;
 import com.mcgm.utils.Paths;
 import java.io.IOException;
@@ -26,9 +26,9 @@ import org.bukkit.Bukkit;
  */
 public final class FileManager {
     
-    Plugin plugin;
+    MCPartyCore plugin;
     
-    public FileManager(Plugin p) {
+    public FileManager(MCPartyCore p) {
         this.plugin = p;
         if (MCPartyConfig.getBoolean("Development.Monitor")) {
             System.out.println("[MCPARRTAAAYYY] Starting File Monitor");

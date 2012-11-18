@@ -4,7 +4,7 @@
  */
 package com.mcgm.manager;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.WorldUtils;
 import com.mcgm.player.teleport.PlayerTeleport;
@@ -30,7 +30,7 @@ import org.bukkit.entity.Player;
 public class WorldManager {
 
     public HashMap<String, World> loadedWorlds = new HashMap<>();
-    private Plugin plugin;
+    private MCPartyCore plugin;
 
     public World getMainWorld() {
         return loadedWorlds.get(WorldUtils.MAIN_WORLD);
@@ -40,7 +40,7 @@ public class WorldManager {
         return loadedWorlds.get(WorldUtils.MINIGAME_WORLD);
     }
 
-    public WorldManager(Plugin plugin) {
+    public WorldManager(MCPartyCore plugin) {
         this.plugin = plugin;
     }
 

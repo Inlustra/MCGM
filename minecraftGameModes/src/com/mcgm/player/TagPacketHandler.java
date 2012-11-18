@@ -11,7 +11,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.FieldAccessException;
 import com.comphenix.protocol.reflect.StructureModifier;
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.game.event.ReceiveNameTagEvent;
 import java.util.logging.Logger;
 import org.bukkit.craftbukkit.libs.jline.internal.Log.Level;
@@ -32,7 +32,7 @@ public class TagPacketHandler extends PacketAdapter {
      *
      * @param plugin - parent plugin.
      */
-    public TagPacketHandler(Plugin plugin, PluginManager pluginManager) {
+    public TagPacketHandler(MCPartyCore plugin, PluginManager pluginManager) {
         super(plugin, ConnectionSide.SERVER_SIDE, Packets.Server.NAMED_ENTITY_SPAWN);
         this.pluginManager = pluginManager;
     }

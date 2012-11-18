@@ -4,7 +4,7 @@
  */
 package com.mcgm.game;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.game.event.ReceiveNameTagEvent;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.player.Team;
@@ -23,7 +23,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
  */
 public abstract class Minigame implements Listener {
     
-    public final Plugin plugin;
+    public final MCPartyCore plugin;
     public final String name;
     public final double version;
     public final String[] authors;
@@ -42,7 +42,7 @@ public abstract class Minigame implements Listener {
     
     protected Minigame() {
         GameInfo f = this.getClass().getAnnotation(GameInfo.class);
-        plugin = Plugin.getInstance();
+        plugin = MCPartyCore.getInstance();
         name = f.name();
         credits = f.credits();
         version = f.version();
@@ -51,7 +51,7 @@ public abstract class Minigame implements Listener {
         pvpEnabled = f.pvp();
         maxPlayers = f.maxPlayers();
         gameTime = f.gameTime();
-        playing = Plugin.getInstance().getGameManager().getPlaying();
+        playing = MCPartyCore.getInstance().getGameManager().getPlaying();
         startingPlayers = playing.toArray(new Player[playing.size()]);
         teamAmount = f.teamAmount();
         if (teamAmount > 0) {
@@ -135,7 +135,7 @@ public abstract class Minigame implements Listener {
         return playing;
     }
     
-    public Plugin getPlugin() {
+    public MCPartyCore getPlugin() {
         return plugin;
     }
     

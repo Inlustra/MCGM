@@ -5,7 +5,7 @@
 package com.mcgm.utils;
 
 import com.google.common.collect.Lists;
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import java.io.File;
 import java.util.List;
 import org.bukkit.entity.Player;
@@ -18,7 +18,7 @@ public class Misc {
 
     public static void refreshPlayer(Player watched) {
 
-        int view = Plugin.getInstance().getServer().getViewDistance() * 16;
+        int view = MCPartyCore.getInstance().getServer().getViewDistance() * 16;
         List<Player> observers = Lists.newArrayList();
 
         // Get nearby observers
@@ -41,7 +41,7 @@ public class Misc {
     public static void refreshPlayer(Player watched, List<Player> observers) {
 
         try {
-            Plugin.getInstance().getProtocolManager().updateEntity(watched, observers);
+            MCPartyCore.getInstance().getProtocolManager().updateEntity(watched, observers);
         } catch (Exception e) {
         }
     }
@@ -52,7 +52,7 @@ public class Misc {
         List<Player> res = Lists.newArrayList();
         int d2 = distance * distance;
 
-        for (Player p : Plugin.getInstance().getServer().getOnlinePlayers()) {
+        for (Player p : MCPartyCore.getInstance().getServer().getOnlinePlayers()) {
             if (p.getWorld() == player.getWorld()
                     && p.getLocation().distanceSquared(player.getLocation()) <= d2) {
 

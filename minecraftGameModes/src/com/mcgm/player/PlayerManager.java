@@ -4,7 +4,7 @@
  */
 package com.mcgm.player;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.manager.PostManager;
 import com.mcgm.manager.WorldManager;
 import com.mcgm.player.teleport.PlayerTeleport;
@@ -19,11 +19,11 @@ import java.util.logging.Logger;
  */
 public class PlayerManager {
 
-    private Plugin plugin;
+    private MCPartyCore plugin;
     private final Object teleportLock = new Object();
     private Queue<PlayerTeleport> teleportQueue = new LinkedList<>();
 
-    public PlayerManager(Plugin plugin) {
+    public PlayerManager(MCPartyCore plugin) {
         this.plugin = plugin;
 
         new Thread(new Runnable() {

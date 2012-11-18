@@ -1,5 +1,5 @@
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;

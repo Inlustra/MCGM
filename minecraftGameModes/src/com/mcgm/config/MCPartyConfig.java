@@ -4,19 +4,12 @@
  */
 package com.mcgm.config;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
+import com.mcgm.game.sign.SignHandler;
 import com.mcgm.utils.Paths;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -26,6 +19,7 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 
 /**
  *
@@ -72,16 +66,37 @@ public class MCPartyConfig {
         if (locationCache.containsKey(key)) {
             return locationCache.get(key);
         } else {
-            Location l = yawpitch ? new Location(Plugin.getInstance().getWorldManager().getMainWorld(),
-                    getInt(key + "X"), getInt(key + "Y"), getInt(key + "Z"), getInt(key + "Yaw"), getInt(key + "Pitch"))
-                    : new Location(Bukkit.getWorld(key + "World"), getInt(key + "X"), getInt(key + "Y"), getInt(key + "Z"));
+            Location l = yawpitch ? new Location(MCPartyCore.getInstance().getWorldManager().getMainWorld(),
+                    getInt(key + ".X"), getInt(key + ".Y"), getInt(key + ".Z"), getInt(key + ".Yaw"), getInt(key + ".Pitch"))
+                    : new Location(MCPartyCore.getInstance().getWorldManager().getMainWorld(), getInt(key + ".X"), getInt(key + ".Y"), getInt(key + ".Z"));
             locationCache.put(key, l);
             return l;
         }
     }
 
+    public static void addLocation(String key, Location l) {
+        customConfig.set(key + ".X", l.getBlockX());
+        customConfig.set(key + ".Y", l.getBlockY());
+        customConfig.set(key + ".Z", l.getBlockZ());
+        customConfig.set(key + ".Pitch", l.getPitch());
+        customConfig.set(key + ".Yaw", l.getYaw());
+    }
+
     public static Location getLocation(String key) {
         return getLocation(key, false);
+    }
+
+    public static void removeLocation(String key) {
+        customConfig.set(key + ".X", null);
+        customConfig.set(key + ".Y", null);
+        customConfig.set(key + ".Z", null);
+        customConfig.set(key + ".Pitch", null);
+        customConfig.set(key + ".Yaw", null);
+        try {
+            MCPartyConfig.getConfig().save(Paths.MCPartyConfig);
+        } catch (IOException ex) {
+            Logger.getLogger(SignHandler.class.getSimpleName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public static void sendMessage(CommandSender cs, String key, Object... inputs) {
@@ -116,5 +131,9 @@ public class MCPartyConfig {
         if (cs != null) {
             cs.sendMessage("Reloaded Config");
         }
+    }
+
+    public static YamlConfiguration getConfig() {
+        return customConfig;
     }
 }

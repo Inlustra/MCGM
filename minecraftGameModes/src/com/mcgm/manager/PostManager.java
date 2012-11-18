@@ -4,7 +4,7 @@
  */
 package com.mcgm.manager;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.web.Post;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -18,13 +18,13 @@ import org.bukkit.Bukkit;
  */
 public class PostManager {
 
-    private Plugin plugin;
+    private MCPartyCore plugin;
     private final Object postLock = new Object();
     private Queue<Post> postList;
     private final Object immediateLock = new Object();
     private Queue<Post> immediateList;
 
-    public PostManager(Plugin p) {
+    public PostManager(MCPartyCore p) {
         this.plugin = p;
         postList = new LinkedList<>();
         immediateList = new LinkedList<>();

@@ -5,7 +5,7 @@
 package com.mcgm.utils;
 
 import com.google.common.collect.Lists;
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import com.mcgm.player.teleport.PlayerTeleport;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
@@ -59,7 +59,7 @@ public class WorldUtils {
         List<Player> res = Lists.newArrayList();
         int d2 = distance * distance;
 
-        for (Player p : Plugin.getInstance().getServer().getOnlinePlayers()) {
+        for (Player p : MCPartyCore.getInstance().getServer().getOnlinePlayers()) {
             if (p.getWorld() == player.getWorld()
                     && p.getLocation().distanceSquared(player.getLocation()) <= d2) {
 
@@ -70,19 +70,19 @@ public class WorldUtils {
     }
 
     public static Location getMainSpawn() {
-        return new Location(Plugin.getInstance().getWorldManager().getMainWorld(), 94, 179, 163);
+        return new Location(MCPartyCore.getInstance().getWorldManager().getMainWorld(), 94, 179, 163);
     }
 
     public static void teleportSafely(Player p, Location l) {
-        Plugin.getInstance().getPlayerManager().teleport(new PlayerTeleport(p, getSafeSpawnAroundABlock(l)));
+        MCPartyCore.getInstance().getPlayerManager().teleport(new PlayerTeleport(p, getSafeSpawnAroundABlock(l)));
     }
 
     public static void teleport(Player p, Location l) {
-        Plugin.getInstance().getPlayerManager().teleport(new PlayerTeleport(p, l));
+        MCPartyCore.getInstance().getPlayerManager().teleport(new PlayerTeleport(p, l));
     }
 
     public static Location getMinigameSpawn() {
-        return Plugin.getInstance().getWorldManager().getMinigameWorld().getSpawnLocation();
+        return MCPartyCore.getInstance().getWorldManager().getMinigameWorld().getSpawnLocation();
     }
     /*
      * For my crappy algorithm, radius MUST be odd.
@@ -108,14 +108,14 @@ public class WorldUtils {
                 }
             }
         } else {
-            Misc.outPrintWarning("TELEPORT WAS NULL");
+            Misc.outPrintWarning("Location was null");
         }
         return null;
     }
 
     public static boolean playerCanSpawnHereSafely(Location l) {
         if (l == null) {
-            // Can't safely spawn at a null location!
+            Misc.outPrintWarning("Location was null in: playerCanSpawnHereSafelY(Location l)");
             return false;
         }
 

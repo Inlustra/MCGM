@@ -4,7 +4,7 @@
  */
 package com.mcgm.player.teleport;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -32,7 +32,7 @@ public class PlayerTeleport {
     }
 
     public void teleport() {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(Plugin.getInstance(), new Runnable() {
+        Bukkit.getScheduler().scheduleSyncDelayedTask(MCPartyCore.getInstance(), new Runnable() {
             @Override
             public void run() {
                 p.teleport(l);

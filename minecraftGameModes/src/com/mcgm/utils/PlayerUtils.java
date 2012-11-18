@@ -4,7 +4,7 @@
  */
 package com.mcgm.utils;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import org.bukkit.entity.Player;
 
 /**
@@ -20,7 +20,7 @@ public class PlayerUtils {
         p.setWalkSpeed(0.2F);
         p.setLevel(0);
         p.setExp(0);
-        Plugin.getInstance().getDisguiseCraftAPI().undisguisePlayer(p);
+        MCPartyCore.getInstance().getDisguiseCraftAPI().undisguisePlayer(p);
         if (teleport) {
             WorldUtils.teleport(p, WorldUtils.getMainSpawn());
         }

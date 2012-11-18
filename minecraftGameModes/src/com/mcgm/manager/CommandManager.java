@@ -4,7 +4,7 @@
  */
 package com.mcgm.manager;
 
-import com.mcgm.Plugin;
+import com.mcgm.MCPartyCore;
 import java.lang.reflect.Field;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -18,7 +18,7 @@ public class CommandManager {
 
     CommandMap commandMap = null;
 
-    public CommandManager(Plugin p) {
+    public CommandManager(MCPartyCore p) {
 
         try {
             Field field = SimplePluginManager.class.getDeclaredField("commandMap");
