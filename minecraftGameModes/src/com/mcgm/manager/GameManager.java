@@ -162,32 +162,14 @@ public class GameManager implements Listener {
         Command lobby = new Command("lobby", "remove player from playing list", "LOBBY", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                playing.remove((Player) cs);
-                MCPartyConfig.sendMessage(cs, "removePlaying");
+                stopPlaying((Player) cs);
                 return true;
             }
         };
         Command play = new Command("play", "Add player to playing list", "PLAY", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                if (!playing.contains((Player) cs)) {
-                    for (Player p : playing) {
-                        p.sendMessage(ChatColor.GOLD + cs.getName() + ChatColor.GREEN + " is now playing!");
-                    }
-                    playing.add((Player) cs);
-                    if (currentMinigame == null) {
-                        if (playing.size() > 1) {
-                            MCPartyConfig.sendMessage(cs, "votesMessage");
-                            cs.sendMessage(gameList);
-                        } else {
-                            MCPartyConfig.sendMessage(cs, "notEnoughPlayers");
-                        }
-                    } else {
-                        MCPartyConfig.sendMessage(cs, "inProgress", currentMinigame.getName());
-                    }
-                } else {
-                    MCPartyConfig.sendMessage(cs, "alreadyPlaying");
-                }
+                joinPlaying((Player) cs);
                 return true;
             }
         };
@@ -208,28 +190,20 @@ public class GameManager implements Listener {
         Command vote = new Command("vote", "Simple vote command", "VOTING", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
-                if (playing.contains((Player) cs)) {
-                    if (currentMinigame != null) {
-                        cs.sendMessage("§cA minigame is currently in play, please wait for it to end");
-                        return true;
-                    }
-                    if (args.length != 0 && cs instanceof Player) {
-                        if (playing.size() > 1) {
-                            String name = Misc.buildString(args, " ");
-                            GameDefinition gameFound = getGame(name);
-                            if (gameFound != null) {
-                                addVote((Player) cs, gameFound);
-                                return true;
-                            }
-                            MCPartyConfig.sendMessage(cs, "gameNotFound", name.trim());
-                        } else {
-                            MCPartyConfig.sendMessage(cs, "notEnoughPlayers");
+                if (args.length != 0 && cs instanceof Player) {
+                    if (playing.size() > 1) {
+                        String name = Misc.buildString(args, " ");
+                        GameDefinition gameFound = getGame(name);
+                        if (gameFound != null) {
+                            addVote((Player) cs, gameFound);
+                            return true;
                         }
+                        MCPartyConfig.sendMessage(cs, "gameNotFound", name.trim());
                     } else {
-                        MCPartyConfig.sendMessage(cs, "voteWrongUsage");
+                        MCPartyConfig.sendMessage(cs, "notEnoughPlayers");
                     }
                 } else {
-                    MCPartyConfig.sendMessage(cs, "mustPlay");
+                    MCPartyConfig.sendMessage(cs, "voteWrongUsage");
                 }
                 return true;
             }
@@ -262,19 +236,55 @@ public class GameManager implements Listener {
     }
     List<Player> playersVoted = new ArrayList<>();
 
-    public void addVote(Player p, GameDefinition gdef) {
-        if (!playersVoted.contains(p)) {
-            playersVoted.add(p);
-            gdef.votes++;
-            MCPartyConfig.sendMessage(p, "addVote", gdef.getName());
-            MCPartyConfig.sendMessage(playing, "voteCounts", gdef.getName(), gdef.votes + "", playing.size() + "");
-            if (playing.size() == playersVoted.size() && playing.size() > 1) {
-                performCountDown(5);
+    public void joinPlaying(Player p2) {
+        if (!playing.contains(p2)) {
+            for (Player p : playing) {
+                p.sendMessage(ChatColor.GOLD + p.getName() + ChatColor.GREEN + " is now playing!");
+            }
+            playing.add(p2);
+            if (currentMinigame == null) {
+                if (playing.size() > 1) {
+                    MCPartyConfig.sendMessage(p2, "votesMessage");
+                    p2.sendMessage(gameList);
+                } else {
+                    MCPartyConfig.sendMessage(p2, "notEnoughPlayers");
+                }
+            } else {
+                MCPartyConfig.sendMessage(p2, "inProgress", currentMinigame.getName());
             }
         } else {
-            MCPartyConfig.sendMessage(p, "alreadyVoted", gdef.getName());
+            MCPartyConfig.sendMessage(p2, "alreadyPlaying");
         }
+    }
 
+    public void stopPlaying(Player p) {
+        if (playing.contains(p)) {
+            playing.remove(p);
+            MCPartyConfig.sendMessage(p, "removePlaying");
+        } else {
+            MCPartyConfig.sendMessage(p, "notInPlayQueue");
+        }
+    }
+
+    public void addVote(Player p, GameDefinition gdef) {
+        if (playing.contains(p)) {
+            if (currentMinigame != null) {
+                p.sendMessage("§cA minigame is currently in play, please wait for it to end");
+            }
+            if (!playersVoted.contains(p)) {
+                playersVoted.add(p);
+                gdef.votes++;
+                MCPartyConfig.sendMessage(p, "addVote", gdef.getName());
+                MCPartyConfig.sendMessage(playing, "voteCounts", gdef.getName(), gdef.votes + "", playing.size() + "");
+                if (playing.size() == playersVoted.size() && playing.size() > 1) {
+                    performCountDown(5);
+                }
+            } else {
+                MCPartyConfig.sendMessage(p, "alreadyVoted", gdef.getName());
+            }
+        } else {
+            MCPartyConfig.sendMessage(p, "mustPlay");
+        }
     }
 
     public void performCountDown(final int time) {
@@ -377,6 +387,4 @@ public class GameManager implements Listener {
     public List<GameDefinition> getGameDefs() {
         return gameDefs;
     }
-    
-    
 }

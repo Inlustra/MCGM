@@ -41,14 +41,11 @@ public class SignManager implements Listener {
         lines:
         for (String s : e.getLines()) {
             for (SignHandler handler : handlers) {
-                System.out.println(handler.getHandlingText() + " " + s.toLowerCase());
                 if (s.toLowerCase().contains(handler.getHandlingText().toLowerCase())) {
-                    if (s.contains(":")) {
-                        String signname = s.substring(s.indexOf(":") + 1);
-                        handler.signSet(e);
-                        handler.addSign(signname, (Sign) e.getBlock().getState(), true);
-                        break lines;
-                    }
+                    String signname = e.getLine(1);
+                    handler.signSet(e);
+                    handler.addSign(signname, (Sign) e.getBlock().getState(), true);
+                    break lines;
                 }
             }
         }
@@ -68,8 +65,8 @@ public class SignManager implements Listener {
                 signLoop:
                 for (SignHandler handler : handlers) {
                     for (Sign s2 : handler.getSigns().keySet()) {
-                        System.out.println(s.getLine(1) + " " + s2.getLine(1));
-                        if (s.getLine(1).equals(s2.getLine(1))) {
+                        System.out.println(s.getBlock() + " " + s2.getBlock());
+                        if (s.getBlock().equals(s2.getBlock())) {
                             handler.performTask(e, s);
                             break signLoop;
                         }

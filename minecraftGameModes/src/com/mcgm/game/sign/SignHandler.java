@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -42,7 +43,7 @@ public abstract class SignHandler {
     public void addSign(String signName, Sign s, boolean save) {
         handlingSigns.put(s, signName);
         if (save) {
-            saveSign(signName, s.getLocation());
+            saveSign(signName, s.getBlock().getLocation());
         }
     }
 
@@ -79,7 +80,7 @@ public abstract class SignHandler {
     }
 
     public void removeSign(Sign s) {
-        MCPartyConfig.removeLocation("signs." + this.getClass().getSimpleName() + "." + getSigns().get(s));
+        MCPartyConfig.getConfig().set("signs." + this.getClass().getSimpleName() + "." + getSigns().get(s), null);
         onRemoveSign(s);
     }
 
