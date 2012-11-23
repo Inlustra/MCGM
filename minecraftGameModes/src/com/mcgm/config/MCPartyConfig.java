@@ -66,20 +66,34 @@ public class MCPartyConfig {
         if (locationCache.containsKey(key)) {
             return locationCache.get(key);
         } else {
-            Location l = yawpitch ? new Location(MCPartyCore.getInstance().getWorldManager().getMainWorld(),
-                    getInt(key + ".X"), getInt(key + ".Y"), getInt(key + ".Z"), getInt(key + ".Yaw"), getInt(key + ".Pitch"))
-                    : new Location(MCPartyCore.getInstance().getWorldManager().getMainWorld(), getInt(key + ".X"), getInt(key + ".Y"), getInt(key + ".Z"));
+            String[] locSplit = customConfig.getString(key).split(" ");
+            double x = Double.parseDouble(locSplit[0]);
+            double y = Double.parseDouble(locSplit[1]);
+            double z = Double.parseDouble(locSplit[2]);
+
+            float yaw = Float.parseFloat(locSplit[3]);
+            float pitch = Float.parseFloat(locSplit[4]);
+            Location l;
+            if (yawpitch) {
+                l = new Location(MCPartyCore.getInstance().getWorldManager().getMainWorld(),
+                        x, y, z, yaw, pitch);
+            } else {
+                l = new Location(MCPartyCore.getInstance().getWorldManager().getMainWorld(),
+                        x, y, z);
+            }
             locationCache.put(key, l);
             return l;
         }
     }
 
     public static void addLocation(String key, Location l) {
-        customConfig.set(key + ".X", l.getBlockX());
-        customConfig.set(key + ".Y", l.getBlockY());
-        customConfig.set(key + ".Z", l.getBlockZ());
-        customConfig.set(key + ".Pitch", l.getPitch());
-        customConfig.set(key + ".Yaw", l.getYaw());
+        StringBuilder sb = new StringBuilder();
+        sb.append(l.getBlockX()).append(" ");
+        sb.append(l.getBlockY()).append(" ");
+        sb.append(l.getBlockZ()).append(" ");
+        sb.append(l.getYaw()).append(" ");
+        sb.append(l.getPitch()).append(" ");
+        customConfig.set(key, sb.toString());
     }
 
     public static Location getLocation(String key) {

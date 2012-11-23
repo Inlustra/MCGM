@@ -22,8 +22,8 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
  * @author Tom
  */
 public abstract class Minigame implements Listener {
-    
-    public final MCPartyCore plugin;
+
+    public final MCPartyCore core;
     public final String name;
     public final double version;
     public final String[] authors;
@@ -39,10 +39,10 @@ public abstract class Minigame implements Listener {
     public ChatColor[] teamColors = new ChatColor[]{ChatColor.RED, ChatColor.BLUE, ChatColor.GREEN, ChatColor.YELLOW,
         ChatColor.DARK_PURPLE, ChatColor.AQUA, ChatColor.WHITE, ChatColor.BLACK};
     public Player[] startingPlayers;
-    
+
     protected Minigame() {
         GameInfo f = this.getClass().getAnnotation(GameInfo.class);
-        plugin = MCPartyCore.getInstance();
+        core = MCPartyCore.getInstance();
         name = f.name();
         credits = f.credits();
         version = f.version();
@@ -68,90 +68,92 @@ public abstract class Minigame implements Listener {
                 currTeam = currTeam++ == teamAmount ? 0 : currTeam++;
             }
         }
-        plugin.getWorldManager().getMinigameWorld().setPVP(pvpEnabled);
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        
+        core.getWorldManager().getMinigameWorld().setPVP(pvpEnabled);
+        core.getServer().getPluginManager().registerEvents(this, core);
+
     }
-    
+
     public void sendPlayingMessage(String s) {
         for (Player p : playing) {
             p.sendMessage(s);
         }
     }
-    
+
     public abstract void generateGame();
-    
+
     public abstract void onTimeUp();
-    
+
     public abstract void startGame();
-    
+
     public abstract void onEnd();
-    
+
     public abstract void minigameTick();
-    
+
     public abstract void playerDisconnect(Player player);
-    
+
     public String getName() {
         return name;
     }
-    
+
     public double getVersion() {
         return version;
     }
-    
+
     public String[] getAuthors() {
         return authors;
     }
-    
+
     public String getDescription() {
         return description;
     }
-    
+
     public int getTeamAmount() {
         return teamAmount;
     }
-    
+
     public boolean isPvpEnabled() {
         return pvpEnabled;
     }
-    
+
     public int getMaxPlayers() {
         return maxPlayers;
     }
-    
+
     public int getGameTime() {
         return gameTime;
     }
-    
+
     public Player[] getWinners() {
         return winners;
     }
-    
+
     public int getCredits() {
         return credits;
     }
-    
+
     public ArrayList<Player> getPlaying() {
         return playing;
     }
-    
+
     public MCPartyCore getPlugin() {
-        return plugin;
+        return core;
     }
-    
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onReceiveNameTagEvent(ReceiveNameTagEvent event) {
-        if (teams.length > 1) {
-            ChatColor c = getPlayerTeam(event.getWatched()).teamColor;
-            event.setTag(c + "[" + c.name() + "] " + event.getTag());
+        if (teams != null) {
+            if (teams.length > 1) {
+                ChatColor c = getPlayerTeam(event.getWatched()).teamColor;
+                event.setTag(c + "[" + c.name() + "] " + event.getTag());
+            }
         }
     }
-    
+
     @EventHandler
     public void playerChangeWorld(PlayerChangedWorldEvent e) {
         Misc.refreshPlayer(e.getPlayer());
     }
-    
+
     public Team getPlayerTeam(Player p) {
         for (Team m : teams) {
             if (m.getTeamPlayers().contains(p)) {

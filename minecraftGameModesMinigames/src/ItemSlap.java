@@ -19,11 +19,9 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -57,7 +55,7 @@ public class ItemSlap extends Minigame {
         } else {
             playerPercent.put(p, 100);
             showPlayerPercent(p);
-            WorldUtils.teleport(p,playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
+            WorldUtils.teleport(p, playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
             playerLives.put(p, LivesLeft -= 1);
             p.getInventory().clear();
             p.setHealth(20);
@@ -144,16 +142,6 @@ public class ItemSlap extends Minigame {
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW)
-    public void onPlayerMove(PlayerMoveEvent e) {
-        synchronized (playing) {
-            if (e.getPlayer().getLocation().getY() < 130) {
-                performDeath(e.getPlayer());
-            }
-
-        }
-    }
-
     @EventHandler
     public void onPlayerPickupItem(PlayerPickupItemEvent e) {
         boolean canHandle = false;
@@ -177,7 +165,7 @@ public class ItemSlap extends Minigame {
             if (heal != -1 && pp > 100) {
                 e.getItem().remove();
                 sendPlayingMessage("Picked up healing item: " + heal);
-                plugin.getWorldManager().getMinigameWorld().playSound(e.getItem().getLocation(), itemSound(e.getItem().getItemStack().getType()), 1, 1);
+                core.getWorldManager().getMinigameWorld().playSound(e.getItem().getLocation(), itemSound(e.getItem().getItemStack().getType()), 1, 1);
                 pp = playerPercent.put(e.getPlayer(), pp - heal);
                 toCancel = true;
             }
@@ -202,7 +190,7 @@ public class ItemSlap extends Minigame {
             double knockback = 0.1 + (totalKnockback * (playerPercent.get((Player) event.getEntity()) / 100));
             event.getEntity().setVelocity(event.getDamager().getLocation().
                     getDirection().multiply(knockback));
-            plugin.getWorldManager().getMinigameWorld().playSound(event.getDamager().getLocation(), itemSound(((Player) event.getEntity()).getItemInHand().getType()), 1, 1);
+            core.getWorldManager().getMinigameWorld().playSound(event.getDamager().getLocation(), itemSound(((Player) event.getEntity()).getItemInHand().getType()), 1, 1);
             int percent = playerPercent.get((Player) event.getEntity()) + (int) itemDetails(playerMat)[1];
             playerPercent.put((Player) event.getEntity(), percent);
             showPlayerPercent((Player) event.getEntity());
@@ -238,12 +226,19 @@ public class ItemSlap extends Minigame {
 
     @Override
     public void minigameTick() {
+        for (Player e : playing) {
+            synchronized (playing) {
+                if (e.getPlayer().getLocation().getY() < 130) {
+                    performDeath(e.getPlayer());
+                }
+            }
+        }
         if (itemSpawns.length != 0) {
             if (timeToItemSpawn == 0) {
                 Block location = (itemSpawns[Misc.getRandom(0, itemSpawns.length - 1)]).getBlock();
                 ItemStack item = new ItemStack(randomSpawn());
-                plugin.getWorldManager().getMinigameWorld().dropItem(location.getRelative(BlockFace.UP).getLocation(), item);
-                plugin.getWorldManager().getMinigameWorld().playSound(location.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+                core.getWorldManager().getMinigameWorld().dropItem(location.getRelative(BlockFace.UP).getLocation(), item);
+                core.getWorldManager().getMinigameWorld().playSound(location.getLocation(), Sound.ITEM_PICKUP, 1, 1);
                 timeToItemSpawn = Misc.getRandom(1, 5);
             }
             timeToItemSpawn--;
@@ -252,15 +247,15 @@ public class ItemSlap extends Minigame {
 
     @Override
     public void generateGame() {
-        WorldUtils.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD);
-        playerSpawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
-        itemSpawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.REDSTONE_WIRE);
+        WorldUtils.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD);
+        playerSpawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.REDSTONE_TORCH_ON);
+        itemSpawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.REDSTONE_WIRE);
         if (itemProbabilityList == null) {
             itemProbabilityList = new ArrayList<>();
             for (Material m : usedItems) {
@@ -280,7 +275,7 @@ public class ItemSlap extends Minigame {
     public void startGame() {
         for (Player p : playing) {
             Location teleport = playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)];
-            WorldUtils.teleport(p,teleport);
+            WorldUtils.teleport(p, teleport);
             playerPercent.put(p, 100);
             playerLives.put(p, 10);
             PlayerInventory inventory = p.getInventory();
@@ -290,7 +285,7 @@ public class ItemSlap extends Minigame {
 
     @Override
     public void onEnd() {
-        for (Player p : plugin.getGameManager().getPlaying()) {
+        for (Player p : core.getGameManager().getPlaying()) {
             p.setWalkSpeed(0.2f);
         }
     }

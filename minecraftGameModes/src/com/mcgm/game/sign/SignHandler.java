@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -27,12 +26,11 @@ public abstract class SignHandler {
 
     private HashMap<Sign, String> handlingSigns;
     private String handlingText;
+    private HashMap<Sign, SignTask> tasks = new HashMap();
 
-    public abstract void performTask(PlayerInteractEvent e, Sign s);
+    public abstract SignTask signSet(SignChangeEvent e);
 
-    public abstract void signSet(SignChangeEvent e);
-
-    public abstract void onSignLoad(Sign s, String name);
+    public abstract SignTask onSignLoad(Sign s, String name);
 
     public SignHandler(String handlingText) {
         this.handlingText = handlingText;
@@ -59,12 +57,16 @@ public abstract class SignHandler {
         if (MCPartyConfig.getConfig().contains("signs." + this.getClass().getSimpleName())) {
             Set<String> names = MCPartyConfig.getConfig().getConfigurationSection("signs." + this.getClass().getSimpleName()).getKeys(true);
             for (String name : names) {
-                Block b = MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name).getBlock();
-                if (b.getType() == Material.SIGN_POST
-                        || b.getType() == Material.WALL_SIGN
-                        || b.getType() == Material.SIGN) {
-                    addSign(name, (Sign) MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name).getBlock().getState(), false);
-                    onSignLoad((Sign) MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name).getBlock().getState(), name);
+                if (MCPartyConfig.getConfig().contains("signs." + this.getClass().getSimpleName() + "." + name + ".X")) {
+                    System.out.println(MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name));
+                    Block b = MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name).getBlock();
+                    if (b.getType() == Material.SIGN_POST
+                            || b.getType() == Material.WALL_SIGN
+                            || b.getType() == Material.SIGN) {
+                        Sign sign = (Sign) MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name).getBlock().getState();
+                        addSign(name, sign, false);
+                        tasks.put(sign, onSignLoad(sign, name));
+                    }
                 }
             }
         }
@@ -82,7 +84,12 @@ public abstract class SignHandler {
     public void removeSign(Sign s) {
         MCPartyConfig.getConfig().set("signs." + this.getClass().getSimpleName() + "." + getSigns().get(s), null);
         onRemoveSign(s);
+        tasks.remove(s);
     }
 
     public abstract void onRemoveSign(Sign s);
+
+    public HashMap<Sign, SignTask> getTasks() {
+        return tasks;
+    }
 }

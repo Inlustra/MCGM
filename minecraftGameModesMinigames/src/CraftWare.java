@@ -31,7 +31,7 @@ public class CraftWare extends Minigame {
     @Override
     public void startGame() {
         for (Player p : playing) {
-            Location tp = plugin.getWorldManager().getMinigameWorld().getSpawnLocation().add(Misc.getRandom(-10, 10), 0, Misc.getRandom(-10, 10));
+            Location tp = core.getWorldManager().getMinigameWorld().getSpawnLocation().add(Misc.getRandom(-10, 10), 0, Misc.getRandom(-10, 10));
             WorldUtils.teleportSafely(p, tp);
         }
         pickNewObjective();
@@ -52,7 +52,7 @@ public class CraftWare extends Minigame {
     }
 
     public void pickNewObjective() {
-        setTaskId(plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+        setTaskId(core.getServer().getScheduler().scheduleSyncRepeatingTask(core, new Runnable() {
             int i = 2;
 
             @Override

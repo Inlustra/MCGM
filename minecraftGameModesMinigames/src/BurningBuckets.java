@@ -26,7 +26,7 @@ import org.bukkit.inventory.PlayerInventory;
 gameTime = 65, description = "Work in teams to build a bridge over the lava with buckets of water, first team to capture the diamonds wins")
 public class BurningBuckets extends Minigame {
 
-    Location area = plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlock().getRelative(0, 100, 0).getLocation();
+    Location area = core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlock().getRelative(0, 100, 0).getLocation();
     Location[] spawns = new Location[]{area};
 
     @Override
@@ -35,12 +35,12 @@ public class BurningBuckets extends Minigame {
 
     @Override
     public void generateGame() {
-        WorldUtils.loadArea(new File(Paths.schematicDir.getPath() + "/BurningBuckets.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD);
-        spawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/BurningBuckets.schematic"), new Vector(plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
-                plugin.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.DIAMOND_BLOCK);
+        WorldUtils.loadArea(new File(Paths.schematicDir.getPath() + "/BurningBuckets.schematic"), new Vector(core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD);
+        spawns = WorldUtils.getLocations(new File(Paths.schematicDir.getPath() + "/BurningBuckets.schematic"), new Vector(core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockY() + 100,
+                core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockZ()), WorldUtils.MINIGAME_WORLD, Material.DIAMOND_BLOCK);
     }
 
     @Override

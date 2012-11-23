@@ -178,31 +178,31 @@ public class VolcanoMadness extends Minigame {
                 case 0:
                 case 1:
                     fireBlock(volcano, Material.LAVA);
-                    plugin.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.LAVA_POP, 0.5f, 1);
+                    core.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.LAVA_POP, 0.5f, 1);
                     break;
                 case 2:
                     fireBlock(volcano, Material.LAVA, 2);
-                    plugin.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.LAVA_POP, 1f, 1);
+                    core.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.LAVA_POP, 1f, 1);
                     break;
                 case 3:
                     fireBlock(volcano, Material.LAVA, 3);
-                    plugin.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.LAVA, 1f, 1);
+                    core.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.LAVA, 1f, 1);
                     break;
                 case 4:
                     fireBlock(volcano, Material.LAVA, 4);
-                    plugin.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.LAVA, 2f, 1);
+                    core.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.LAVA, 2f, 1);
                     break;
                 case 5:
                     fireBlock(volcano, Material.LAVA, 4);
-                    plugin.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.EXPLODE, 0.5f, 1);
+                    core.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.EXPLODE, 0.5f, 1);
                     break;
                 case 6:
                     fireBlock(volcano, Material.LAVA, 5);
-                    plugin.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.EXPLODE, 1f, 1);
+                    core.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.EXPLODE, 1f, 1);
                     break;
                 case 7:
                     fireBlock(volcano, Material.LAVA, 5);
-                    plugin.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.EXPLODE, 1f, 1);
+                    core.getWorldManager().getMinigameWorld().playSound(volcanoBase, org.bukkit.Sound.EXPLODE, 1f, 1);
                     break;
                 case 8:
                     fireBlock(volcano, Material.LAVA, 5);
@@ -241,12 +241,12 @@ public class VolcanoMadness extends Minigame {
 
     public void dropBlocks(Location[] l, Material m) {
         for (Location loc : l) {
-            plugin.getWorldManager().getMinigameWorld().spawnFallingBlock(loc, m, (byte) 0);
+            core.getWorldManager().getMinigameWorld().spawnFallingBlock(loc, m, (byte) 0);
         }
     }
 
     public void fireBlock(Location l, Material m) {
-        FallingBlock block = plugin.getWorldManager().getMinigameWorld().spawnFallingBlock(l, m, (byte) 0);
+        FallingBlock block = core.getWorldManager().getMinigameWorld().spawnFallingBlock(l, m, (byte) 0);
         float maxx = MCPartyConfig.getFloat("VolcanoMadness.fireMaxX");
         float maxy = MCPartyConfig.getFloat("VolcanoMadness.fireMaxY");
         float maxz = MCPartyConfig.getFloat("VolcanoMadness.fireMaxZ");

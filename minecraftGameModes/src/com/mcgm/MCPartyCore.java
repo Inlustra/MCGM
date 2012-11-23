@@ -8,6 +8,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.mcgm.config.MCPartyConfig;
 import com.mcgm.game.sign.MinigameSignHandler;
+import com.mcgm.game.sign.PlaySignHandler;
 import com.mcgm.manager.CommandManager;
 import com.mcgm.manager.FileManager;
 import com.mcgm.manager.GameManager;
@@ -75,19 +76,20 @@ public final class MCPartyCore extends JavaPlugin {
         protocolManager = ProtocolLibrary.getProtocolManager();
         protocolManager.addPacketListener(new TagPacketHandler(this, getServer().getPluginManager()));
         worldManager = new WorldManager(this);
-        gameManager = new GameManager(this);
-        gameManager.loadGameList(null);
-        postManager = new PostManager(this);
-        playerManager = new PlayerManager(this);
-        signManager = new SignManager(this);
-        gameManager.loadManager();
         worldManager.loadWorlds(WorldUtils.MAIN_WORLD,
                 WorldUtils.MINIGAME_WORLD);
         worldManager.loadedWorlds.get(WorldUtils.MINIGAME_WORLD).setAutoSave(false);
         worldManager.loadedWorlds.get(WorldUtils.MAIN_WORLD).setSpawnLocation(WorldUtils.getMainSpawn().getBlockX(),
                 WorldUtils.getMainSpawn().getBlockY(),
                 WorldUtils.getMainSpawn().getBlockZ());
-        signManager.addSignHandler(new MinigameSignHandler("MCParty"));
+        gameManager = new GameManager(this);
+        gameManager.loadGameList(null);
+        postManager = new PostManager(this);
+        playerManager = new PlayerManager(this);
+        signManager = new SignManager(this);
+        gameManager.loadManager();
+        signManager.addSignHandler(new MinigameSignHandler("[MCGAME]"));
+        signManager.addSignHandler(new PlaySignHandler("[MCPLAY]"));
     }
 
     @Override

@@ -6,7 +6,9 @@ package com.mcgm.manager;
 
 import com.mcgm.MCPartyCore;
 import com.mcgm.game.sign.SignHandler;
+import com.mcgm.game.sign.SignTask;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
@@ -43,7 +45,7 @@ public class SignManager implements Listener {
             for (SignHandler handler : handlers) {
                 if (s.toLowerCase().contains(handler.getHandlingText().toLowerCase())) {
                     String signname = e.getLine(1);
-                    handler.signSet(e);
+                    handler.getTasks().put((Sign) e.getBlock().getState(),handler.signSet(e));
                     handler.addSign(signname, (Sign) e.getBlock().getState(), true);
                     break lines;
                 }
@@ -67,7 +69,7 @@ public class SignManager implements Listener {
                     for (Sign s2 : handler.getSigns().keySet()) {
                         System.out.println(s.getBlock() + " " + s2.getBlock());
                         if (s.getBlock().equals(s2.getBlock())) {
-                            handler.performTask(e, s);
+                            handler.getTasks().get(s).performTask(e, s);
                             break signLoop;
                         }
                     }

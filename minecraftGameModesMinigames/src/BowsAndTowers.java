@@ -33,13 +33,13 @@ import org.bukkit.inventory.PlayerInventory;
 gameTime = -1, description = "desc", seed = "-1793484691")
 public class BowsAndTowers extends Minigame {
 
-    Location spawn = plugin.getWorldManager().getMinigameWorld().getSpawnLocation();
+    Location spawn = core.getWorldManager().getMinigameWorld().getSpawnLocation();
     HashMap<Player, Location> playerTowers = new HashMap<>();
     HashMap<Player, Double> playerStartHeight = new HashMap<>();
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
-        if (e.getPlayer().getWorld() == plugin.getWorldManager().getMinigameWorld()) {
+        if (e.getPlayer().getWorld() == core.getWorldManager().getMinigameWorld()) {
             Location playerLoc = e.getPlayer().getLocation();
             if (playerStartHeight.containsKey(e.getPlayer())) {
                 double distanceNeeded = 100 - playerStartHeight.get(e.getPlayer());
@@ -96,8 +96,8 @@ public class BowsAndTowers extends Minigame {
 
             for (Player p : playing) {
                 for (int i = 0; i < playing.size() * 5; i++) {
-                    Location mobs = new Location(plugin.getWorldManager().getMinigameWorld(), xAvg + Misc.getRandom(-10, 10), yAvg + Misc.getRandom(5, 15), zAvg - Misc.getRandom(-10, 10));
-                    oldChickens.add(this.plugin.getWorldManager().getMinigameWorld().spawnEntity(mobs, EntityType.CHICKEN));
+                    Location mobs = new Location(core.getWorldManager().getMinigameWorld(), xAvg + Misc.getRandom(-10, 10), yAvg + Misc.getRandom(5, 15), zAvg - Misc.getRandom(-10, 10));
+                    oldChickens.add(this.core.getWorldManager().getMinigameWorld().spawnEntity(mobs, EntityType.CHICKEN));
                 }
             }
             timer = 0;
@@ -145,7 +145,7 @@ public class BowsAndTowers extends Minigame {
 
             for (int foo = 0; foo < 20; foo++) {
                 Location initalChickens = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY() + 20, spawn.getBlockZ() + Misc.getRandom(-10, 10));
-                plugin.getWorldManager().getMinigameWorld().spawnEntity(initalChickens, EntityType.CHICKEN);
+                core.getWorldManager().getMinigameWorld().spawnEntity(initalChickens, EntityType.CHICKEN);
             }
 
         }

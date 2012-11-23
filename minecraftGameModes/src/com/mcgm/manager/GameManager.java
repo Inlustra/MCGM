@@ -10,6 +10,7 @@ import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameDefinition;
 import com.mcgm.game.provider.GameSource;
+import com.mcgm.game.sign.MinigameSignHandler;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import com.mcgm.utils.PlayerUtils;
@@ -101,7 +102,7 @@ public class GameManager implements Listener {
         Bukkit.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
             @Override
             public void run() {
-                WorldUtils.teleportSafely(e.getPlayer(), MCPartyConfig.getLocation("Spawn.Prison", true));
+                WorldUtils.teleportSafely(e.getPlayer(), MCPartyConfig.getLocation("Spawn.SpawnLocation", true));
                 Post p = new Post(WebUtils.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
                     @Override
                     public void serverResponse(String response) {
@@ -239,7 +240,7 @@ public class GameManager implements Listener {
     public void joinPlaying(Player p2) {
         if (!playing.contains(p2)) {
             for (Player p : playing) {
-                p.sendMessage(ChatColor.GOLD + p.getName() + ChatColor.GREEN + " is now playing!");
+                p.sendMessage(ChatColor.GOLD + p2.getName() + ChatColor.GREEN + " is now playing!");
             }
             playing.add(p2);
             if (currentMinigame == null) {
