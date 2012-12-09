@@ -8,15 +8,14 @@ import com.mcgm.MCPartyCore;
 import com.mcgm.config.MCPartyConfig;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
+import com.mcgm.game.map.MapDefinition;
+import com.mcgm.game.map.MapSource;
 import com.mcgm.game.provider.GameDefinition;
 import com.mcgm.game.provider.GameSource;
-import com.mcgm.game.sign.MinigameSignHandler;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import com.mcgm.utils.PlayerUtils;
-import com.mcgm.utils.WebUtils;
 import com.mcgm.utils.WorldUtils;
-import com.mcgm.web.Post;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,22 +31,25 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.json.simple.JSONObject;
 
 /**
  *
  * @author Tom
  */
 public class GameManager implements Listener {
-
+    
     private Minigame currentMinigame;
-    private Minigame lobbyMinigame;
+    private MapSource mapSrc;
+    private List<MapDefinition> mapDefs;
+    private String mapList;
     private GameSource gameSrc;
     private List<GameDefinition> gameDefs;
     private String gameList;
     private MCPartyCore plugin;
     private ArrayList<Player> playing;
     private int voteTime = 180;
-
+    
     public GameManager(final MCPartyCore p) {
         playing = new ArrayList<>();
         plugin = p;
@@ -55,10 +57,10 @@ public class GameManager implements Listener {
             @Override
             public void run() {
                 if (currentMinigame != null) {
-                    currentMinigame.gameTime--;
-                    if (currentMinigame.gameTime > 0) {
+                    currentMinigame.setGameTime(currentMinigame.getGameTime() - 1);
+                    if (currentMinigame.getGameTime() > 0) {
                         for (Player p : playing) {
-                            p.setLevel(currentMinigame.gameTime);
+                            p.setLevel(currentMinigame.getGameTime());
                         }
                     }
                     currentMinigame.minigameTick();
@@ -76,48 +78,69 @@ public class GameManager implements Listener {
             }
         }, 0, 20L);
     }
-
+    
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent e) {
         Player p = e.getPlayer();
+        plugin.getPlayerManager().notifyOffline(p);
         if (playing.contains(p)) {
             playing.remove(p);
         }
         if (currentMinigame != null) {
-            if (currentMinigame.getPlaying().contains(p)) {
+            if (currentMinigame.getCurrentlyPlaying().contains(p)) {
                 currentMinigame.playerDisconnect(p);
-                currentMinigame.getPlaying().remove(p);
-                if (currentMinigame.getPlaying().size() <= 1) {
+                currentMinigame.getCurrentlyPlaying().remove(p);
+                if (currentMinigame.getCurrentlyPlaying().size() <= 1) {
                     PlayerUtils.cleanPlayer(p, false);
                     Bukkit.getPluginManager().callEvent(new GameEndEvent(currentMinigame, false, (Player) null));
                 }
             }
         }
     }
-
+    
     @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent e) {
-
-        MCPartyConfig.sendMessage(e.getPlayer(), "Spawn.Message", "" + playing.size());
+        
         Bukkit.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
             @Override
             public void run() {
                 WorldUtils.teleportSafely(e.getPlayer(), MCPartyConfig.getLocation("Spawn.SpawnLocation", true));
-                Post p = new Post(WebUtils.LogonURL, (Object) "name", (Object) e.getPlayer().getName()) {
-                    @Override
-                    public void serverResponse(String response) {
-                        e.getPlayer().sendMessage(response);
-                    }
-                };
-                plugin.getPostManager().postImmediate(p);
+                plugin.getWebManager().sendData("login", e.getPlayer().getName());
             }
         }, 20L);
     }
-
+    
     @EventHandler
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
-            for (Player p : currentMinigame.startingPlayers) {
+            Bukkit.broadcastMessage(MCPartyConfig.parse("Minigame.WinningMessage", end.getMinigame().getName(), Misc.buildPlayerString(end.getWinners(), " ")));
+            Bukkit.broadcastMessage(MCPartyConfig.parse("Minigame.WinningMessage2", end.getMinigame().getCredits() + ""));
+            for (Player p : end.getWinners()) {
+                JSONObject j = new JSONObject();
+                j.put("username", p.getName());
+                j.put("minigame", end.getMinigame().getName());
+                plugin.getWebManager().sendData("winner", j);
+                plugin.getPlayerManager().getPlayerProperties().get(p)
+                        .setCredits(plugin.getPlayerManager().
+                        getPlayerProperties().get(p).getCredits() + end.getMinigame().getCredits());
+                plugin.getPlayerManager().getPlayerProperties().get(p)
+                        .setWins(plugin.getPlayerManager().
+                        getPlayerProperties().get(p).getWins() + 1);
+                end.getMinigame().getStartingPlayers().remove(p);
+                plugin.getPlayerManager().updateWeb(p, "credits", end.getMinigame().getCredits());
+                PlayerUtils.cleanPlayer(p, p.isOnline() ? true : false);
+            }
+            for (Player p : end.getMinigame().getStartingPlayers()) {
+                JSONObject j = new JSONObject();
+                j.put("username", p.getName());
+                j.put("minigame", end.getMinigame().getName());
+                plugin.getWebManager().sendData("loser", j);
+                plugin.getPlayerManager().getPlayerProperties().get(p)
+                        .setLosses(plugin.getPlayerManager().
+                        getPlayerProperties().get(p).getLosses() + 1);
+                p.sendMessage(MCPartyConfig.parse("Minigame.LosingMessage", end.getMinigame().getName()));
+            }
+            for (Player p : currentMinigame.getStartingPlayers()) {
                 PlayerUtils.cleanPlayer(p, p.isOnline() ? true : false);
             }
             HandlerList.unregisterAll(currentMinigame);
@@ -125,9 +148,10 @@ public class GameManager implements Listener {
             playersVoted.clear();
             currentMinigame = null;
             voteTime = 180;
+            plugin.getWebManager().sendData("minigame", "Lobby");
         }
     }
-
+    
     public void loadManager() {
         Command spawn = new Command("spawn", "Sends player to spawn", "SPAWN", new ArrayList<String>()) {
             @Override
@@ -236,28 +260,32 @@ public class GameManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     List<Player> playersVoted = new ArrayList<>();
-
+    
     public void joinPlaying(Player p2) {
-        if (!playing.contains(p2)) {
-            for (Player p : playing) {
-                p.sendMessage(ChatColor.GOLD + p2.getName() + ChatColor.GREEN + " is now playing!");
-            }
-            playing.add(p2);
-            if (currentMinigame == null) {
-                if (playing.size() > 1) {
-                    MCPartyConfig.sendMessage(p2, "votesMessage");
-                    p2.sendMessage(gameList);
+        if (plugin.getPlayerManager().isPlayerLoggedIn(p2)) {
+            if (!playing.contains(p2)) {
+                for (Player p : playing) {
+                    p.sendMessage(ChatColor.GOLD + p2.getName() + ChatColor.GREEN + " is now playing!");
+                }
+                playing.add(p2);
+                if (currentMinigame == null) {
+                    if (playing.size() > 1) {
+                        MCPartyConfig.sendMessage(p2, "votesMessage");
+                        p2.sendMessage(gameList);
+                    } else {
+                        MCPartyConfig.sendMessage(p2, "notEnoughPlayers");
+                    }
                 } else {
-                    MCPartyConfig.sendMessage(p2, "notEnoughPlayers");
+                    MCPartyConfig.sendMessage(p2, "inProgress", currentMinigame.getName());
                 }
             } else {
-                MCPartyConfig.sendMessage(p2, "inProgress", currentMinigame.getName());
+                MCPartyConfig.sendMessage(p2, "alreadyPlaying");
             }
         } else {
-            MCPartyConfig.sendMessage(p2, "alreadyPlaying");
+            MCPartyConfig.sendMessage(p2, "mustLogIn");
         }
     }
-
+    
     public void stopPlaying(Player p) {
         if (playing.contains(p)) {
             playing.remove(p);
@@ -266,7 +294,7 @@ public class GameManager implements Listener {
             MCPartyConfig.sendMessage(p, "notInPlayQueue");
         }
     }
-
+    
     public void addVote(Player p, GameDefinition gdef) {
         if (playing.contains(p)) {
             if (currentMinigame != null) {
@@ -287,13 +315,13 @@ public class GameManager implements Listener {
             MCPartyConfig.sendMessage(p, "mustPlay");
         }
     }
-
+    
     public void performCountDown(final int time) {
         performCountDown(time, null);
     }
-
+    
     public void performCountDown(final int time, final GameDefinition game) {
-
+        
         GameDefinition gameToRun = game;
         if (game == null) {
             GameDefinition highestVoted = gameDefs.get(0);
@@ -304,13 +332,14 @@ public class GameManager implements Listener {
             }
             gameToRun = highestVoted;
         }
-
+        
         MCPartyConfig.sendMessage(playing, "chosenGame", gameToRun.getName());
-
+        
         plugin.getWorldManager().regenWorld(WorldUtils.MINIGAME_WORLD, true, "".equals(gameToRun.getSeed()) ? true : false, "" + gameToRun.getSeed());
-
+        
         try {
             currentMinigame = ((Minigame) gameToRun.clazz.getDeclaredConstructor().newInstance());
+            plugin.getWebManager().sendData("minigame", currentMinigame.getName());
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -321,7 +350,7 @@ public class GameManager implements Listener {
         currentMinigame.generateGame();
         setTaskId(Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
             int i = 6;
-
+            
             @Override
             public void run() {
                 if (i > 0) {
@@ -337,15 +366,15 @@ public class GameManager implements Listener {
         }, 0, 20L));
     }
     private int id;
-
+    
     public void setTaskId(int id) {
         this.id = id;
     }
-
+    
     private void cancel() {
         Bukkit.getScheduler().cancelTask(id);
     }
-
+    
     public void loadGameList(CommandSender cs) {
         gameSrc = new GameSource(Paths.compiledDir);
         gameDefs = gameSrc.list();
@@ -358,7 +387,16 @@ public class GameManager implements Listener {
             cs.sendMessage("Reloaded games: " + gameList);
         }
     }
-
+    
+    public void loadMaps() {
+        mapSrc = new MapSource(Paths.mapDir);
+        mapDefs = mapSrc.list();
+        StringBuilder sb = new StringBuilder();
+        for (GameDefinition def : gameDefs) {
+            sb.append(def.getName()).append("(").append(Misc.buildString(def.aliases, ",")).append(") ");
+        }
+    }
+    
     public GameDefinition getGame(String name) {
         for (GameDefinition def : gameDefs) {
             for (String alias : def.aliases) {
@@ -372,19 +410,19 @@ public class GameManager implements Listener {
         }
         return null;
     }
-
+    
     public ArrayList<Player> getPlaying() {
         return playing;
     }
-
+    
     public MCPartyCore getPlugin() {
         return plugin;
     }
-
+    
     public GameSource getGameSrc() {
         return gameSrc;
     }
-
+    
     public List<GameDefinition> getGameDefs() {
         return gameDefs;
     }

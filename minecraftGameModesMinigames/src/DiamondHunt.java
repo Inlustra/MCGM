@@ -45,7 +45,7 @@ public class DiamondHunt extends Minigame {
 
     @Override
     public void minigameTick() {
-        for (Player player : playing) {
+        for (Player player : currentlyPlaying) {
             PlayerInventory inventory = player.getInventory();
             if (inventory.contains(Material.DIAMOND)) {
                 Bukkit.broadcastMessage("Player " + ChatColor.GOLD + player.getName().toString() + ChatColor.WHITE + " wins!");
@@ -60,6 +60,7 @@ public class DiamondHunt extends Minigame {
 
     @Override
     public void generateGame() {
+        
         for (int i = 0; i < 20; i++) {
             for (int x = 0; x < 20; x++) {
                 for (int a = 0; a < 20; a++) {
@@ -107,7 +108,7 @@ public class DiamondHunt extends Minigame {
 
     @Override
     public void startGame() {
-        for (Player p : playing) {
+        for (Player p : currentlyPlaying) {
             Location teleport = new Location(cube.getWorld(), cube.getBlockX() + Misc.getRandom(1, 20), cube.getBlockY() + 1, cube.getBlockZ() + Misc.getRandom(1, 20));
             WorldUtils.teleport(p,teleport);
             PlayerInventory inventory = p.getInventory();

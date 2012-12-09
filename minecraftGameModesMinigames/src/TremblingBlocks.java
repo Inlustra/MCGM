@@ -32,13 +32,13 @@ public class TremblingBlocks extends Minigame {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         System.out.println("Player died!");
-        if (playing.contains(event.getEntity())) {
-            playing.remove(event.getEntity());
+        if (currentlyPlaying.contains(event.getEntity())) {
+            currentlyPlaying.remove(event.getEntity());
         }
-        if (playing.size() == 1) {
-            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, playing.get(0)));
+        if (currentlyPlaying.size() == 1) {
+            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, currentlyPlaying.get(0)));
         }
-        System.out.println(playing.size());
+        System.out.println(currentlyPlaying.size());
     }
 
     @EventHandler
@@ -90,17 +90,10 @@ public class TremblingBlocks extends Minigame {
 
     @Override
     public void startGame() {
-        for (Player p : playing) {
-            System.out.println(spawns.length);
+        for (Player p : currentlyPlaying) {
             Location teleport = spawns[Misc.getRandom(1, spawns.length)];
-            WorldUtils.teleport(p,teleport);
+            WorldUtils.teleport(p, teleport);
             LastLocation.put(p, teleport);
-            PlayerInventory inventory = p.getInventory();
-            inventory.clear();
-            ItemStack bow = new ItemStack(Material.BOW, 1);
-            ItemStack arrows = new ItemStack(Material.ARROW, 10);
-            ItemStack sword = new ItemStack(Material.IRON_SWORD, 1);
-            inventory.addItem(bow, arrows, sword);
         }
 
     }

@@ -31,9 +31,9 @@ public class VolcanoMadness extends Minigame {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
-        playing.remove(e.getEntity());
-        if (playing.size() <= 1) {
-            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, playing.size() > 0 ? playing.get(0) : null));
+        currentlyPlaying.remove(e.getEntity());
+        if (currentlyPlaying.size() <= 1) {
+            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, currentlyPlaying.size() > 0 ? currentlyPlaying.get(0) : null));
         }
     }
     ArrayList<Location> volcanoCenter = new ArrayList<>();
@@ -122,7 +122,7 @@ public class VolcanoMadness extends Minigame {
 
     @Override
     public void startGame() {
-        for (Player p : playing) {
+        for (Player p : currentlyPlaying) {
             WorldUtils.teleport(p, spawnLoc[Misc.getRandom(0, spawnLoc.length)]);
         }
         hasStarted = true;
@@ -146,28 +146,28 @@ public class VolcanoMadness extends Minigame {
                 severity++;
                 switch (severity) {
                     case 1:
-                        MCPartyConfig.sendMessage(playing, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
                         break;
                     case 2:
                         breakRandomVolcanoBlock(2);
                         break;
                     case 4:
-                        MCPartyConfig.sendMessage(playing, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
                         break;
                     case 5:
                         breakRandomSidesBlock(3);
                         break;
                     case 8:
-                        MCPartyConfig.sendMessage(playing, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
                         break;
                     case 12:
-                        MCPartyConfig.sendMessage(playing, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
                         break;
                     case 15:
-                        MCPartyConfig.sendMessage(playing, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
                         break;
                     case 16:
-                        Bukkit.getPluginManager().callEvent(new GameEndEvent(this, true, playing.toArray(new Player[playing.size()])));
+                        Bukkit.getPluginManager().callEvent(new GameEndEvent(this, true, currentlyPlaying.toArray(new Player[currentlyPlaying.size()])));
                         break;
                     default:
                         breakRandomVolcanoBlock(2);
@@ -233,9 +233,9 @@ public class VolcanoMadness extends Minigame {
 
     @Override
     public void playerDisconnect(Player player) {
-        playing.remove(player);
-        if (playing.size() <= 1) {
-            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, playing.size() > 0 ? playing.get(0) : null));
+        currentlyPlaying.remove(player);
+        if (currentlyPlaying.size() <= 1) {
+            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, currentlyPlaying.size() > 0 ? currentlyPlaying.get(0) : null));
         }
     }
 

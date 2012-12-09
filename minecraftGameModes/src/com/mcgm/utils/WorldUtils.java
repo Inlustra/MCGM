@@ -95,22 +95,44 @@ public class WorldUtils {
      * @return A safe location, or none if it wasn't found.
      */
     public static Location getSafeSpawnAroundABlock(Location l) {
-        if (l != null) {
-            if (playerCanSpawnHereSafely(l)) {
+        if (l.getBlock().getType() == Material.AIR) {
+            System.out.println("this is air: "+l);
+            if (isBlockAboveAir(l)) {
+                System.out.println("above is air, returning! "+l);
+                return l;
+            } else {
+                System.out.println("above isn't air, returning! "+l);
+                while (l.getBlock().getType() == Material.AIR) {
+                    l.add(0, 1, 0);
+                    System.out.println("Going up! "+l);
+                }
                 return l;
             }
-            Iterator<BlockFace> checkblock = AROUND_BLOCK.iterator();
-            while (checkblock.hasNext()) {
-                final BlockFace face = checkblock.next();
-                if (playerCanSpawnHereSafely(l.getBlock().getRelative(face).getLocation())) {
-                    // Don't forget to center the player.
-                    return l.getBlock().getRelative(face).getLocation().add(.5, 0, .5);
-                }
-            }
         } else {
-            Misc.outPrintWarning("Location was null");
+            while (l.getBlock().getType() == Material.AIR) {
+                System.out.println("Going up! "+l);
+                l.add(0, 1, 0);
+            }
+            return l;
         }
-        return null;
+    }
+
+    public static Location getSafeBlockBelow(Location l) {
+        l.subtract(0, 1, 0);
+        if (l.getBlock().getType() == Material.AIR) {
+            return getSafeBlockBelow(l);
+        } else {
+            return l;
+        }
+    }
+
+    public static Location getSafeBlockAbove(Location l) {
+        l.add(0, 1, 0);
+        if (l.getBlock().getType() == Material.AIR) {
+            return getSafeBlockBelow(l);
+        } else {
+            return l;
+        }
     }
 
     public static boolean playerCanSpawnHereSafely(Location l) {
@@ -164,7 +186,7 @@ public class WorldUtils {
 
     public static boolean isBlockAboveAir(Location l) {
         Location downOne = l.clone();
-        downOne.setY(downOne.getY() - 1);
+        downOne.setY(downOne.getY() + 1);
         return (downOne.getBlock().getType() == Material.AIR);
     }
 

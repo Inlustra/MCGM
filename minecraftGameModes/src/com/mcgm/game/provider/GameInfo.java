@@ -35,4 +35,6 @@ public @interface GameInfo {
     int credits() default 50;
 
     String seed() default "";
+
+    boolean customMapGeneration() default false;
 }

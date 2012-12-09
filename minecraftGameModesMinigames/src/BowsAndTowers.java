@@ -60,21 +60,25 @@ public class BowsAndTowers extends Minigame {
     public void onEntityDeath(EntityDeathEvent e) {
         Player killer = e.getEntity().getKiller();
         if (playerTowers.containsKey(killer)) {
-            playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.BRICK, true).getLocation());
+            if (core.getPlayerManager().getPlayerProperties(killer).isVIP()) {
+                playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.DIAMOND_BLOCK, true).getLocation());
+            } else {
+                playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.BRICK, true).getLocation());
+            }
             makeLayer(playerTowers.get(killer).getBlock(), Material.FENCE, false);
             killer.playSound(killer.getLocation(), Sound.BURP, 1f, 1f);
             Location teleportLocation = new Location(playerTowers.get(killer).getWorld(), playerTowers.get(killer).getX() + 0.5, playerTowers.get(killer).getY(), playerTowers.get(killer).getZ() + 0.5, killer.getLocation().getYaw(), killer.getLocation().getPitch());
             WorldUtils.teleport(killer, teleportLocation);
 
-            for (Player p : playing) {
+            for (Player p : currentlyPlaying) {
                 x += p.getLocation().getX();
                 y += p.getLocation().getY();
                 z += p.getLocation().getZ();
             }
 
-            xAvg = x / playing.size();
-            yAvg = y / playing.size();
-            zAvg = z / playing.size();
+            xAvg = x / currentlyPlaying.size();
+            yAvg = y / currentlyPlaying.size();
+            zAvg = z / currentlyPlaying.size();
 
             x = 0;
             y = 0;
@@ -94,8 +98,8 @@ public class BowsAndTowers extends Minigame {
             }
             oldChickens.clear();
 
-            for (Player p : playing) {
-                for (int i = 0; i < playing.size() * 5; i++) {
+            for (Player p : currentlyPlaying) {
+                for (int i = 0; i < currentlyPlaying.size() * 5; i++) {
                     Location mobs = new Location(core.getWorldManager().getMinigameWorld(), xAvg + Misc.getRandom(-10, 10), yAvg + Misc.getRandom(5, 15), zAvg - Misc.getRandom(-10, 10));
                     oldChickens.add(this.core.getWorldManager().getMinigameWorld().spawnEntity(mobs, EntityType.CHICKEN));
                 }
@@ -114,12 +118,17 @@ public class BowsAndTowers extends Minigame {
 
     @Override
     public void startGame() {
-        for (Player p : playing) {
+        for (Player p : currentlyPlaying) {
             Location tower = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY(), spawn.getBlockZ() + Misc.getRandom(-10, 10));
             playerTowers.put(p, tower);
 
             Block towerCore = playerTowers.get(p).getBlock();
-            Block newTowerCore = makeLayer(towerCore, Material.BRICK, true);
+            Block newTowerCore;
+            if (core.getPlayerManager().getPlayerProperties(p).isVIP()) {
+                newTowerCore = makeLayer(towerCore, Material.DIAMOND_BLOCK, true);
+            } else {
+                newTowerCore = makeLayer(towerCore, Material.BRICK, true);
+            }
             playerTowers.put(p, newTowerCore.getLocation());
 
             for (int i = 0; i < 10; i++) {
@@ -129,7 +138,7 @@ public class BowsAndTowers extends Minigame {
                 }
             }
             Location teleportLocation = new Location(spawn.getWorld(), towerCore.getX() + 0.5, towerCore.getY(), towerCore.getZ() + 0.5);
-            WorldUtils.teleport(p,teleportLocation);
+            WorldUtils.teleport(p, teleportLocation);
 
             playerStartHeight.put(p, (double) teleportLocation.getBlockY());
             p.setLevel(0);

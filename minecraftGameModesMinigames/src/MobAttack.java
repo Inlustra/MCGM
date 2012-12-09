@@ -40,13 +40,13 @@ public class MobAttack extends Minigame {
 
     @Override
     public void startGame() {
-        for (Player p : playing) {
+        for (Player p : currentlyPlaying) {
             Location teleport = WorldUtils.getMainSpawn();
             WorldUtils.teleport(p,teleport);
             PlayerInventory inventory = p.getInventory();
             inventory.clear();
         }
-        AlphaMob = playing.get(Misc.getRandom(0, playing.size() - 1));
+        AlphaMob = currentlyPlaying.get(Misc.getRandom(0, currentlyPlaying.size() - 1));
         AlphaMob.setWalkSpeed(0.4f);
         AlphaMob.sendMessage(ChatColor.WHITE + "YOU ARE THE " + ChatColor.DARK_PURPLE + " ALPHA MOB" + ChatColor.WHITE + "!");
         Disguise AlphaDisguise = new Disguise(core.getDisguiseCraftAPI().newEntityID(), DisguiseType.Zombie);
@@ -72,9 +72,6 @@ public class MobAttack extends Minigame {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (event.getFrom().getY() < event.getTo().getY()) {
-            event.getPlayer().setVelocity(event.getPlayer().getVelocity().setY(1.5));
-        }
     }
 
     @Override

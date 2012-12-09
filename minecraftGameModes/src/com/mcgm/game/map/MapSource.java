@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mcgm.game.provider;
+package com.mcgm.game.map;
 
+import com.mcgm.game.provider.*;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.manager.GameManager;
 import com.mcgm.manager.GameManager;
@@ -19,19 +20,19 @@ import java.util.logging.Logger;
  *
  * @author Tom
  */
-public class GameSource {
+public class MapSource {
 
     File[] files;
 
-    public GameSource(File... files) {
+    public MapSource(File... files) {
         this.files = files;
     }
 
-    public LinkedList<GameDefinition> list() {
-        final LinkedList<GameDefinition> defs = new LinkedList<GameDefinition>();
+    public LinkedList<MapDefinition> list() {
+        final LinkedList<MapDefinition> defs = new LinkedList<MapDefinition>();
         for (final File file : files) {
             try {
-                GameClassLoader l = new GameClassLoader(file.toURI().toURL(), GameManager.class.getClassLoader());
+                GameClassLoader l = new GameClassLoader(file.toURI().toURL(), MapSource.class.getClassLoader());
                 list(l, file, defs);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(GameSource.class.getName()).log(Level.SEVERE, null, ex);
@@ -40,7 +41,7 @@ public class GameSource {
         return defs;
     }
 
-    private void list(ClassLoader loader, final File file, final LinkedList<GameDefinition> defs) {
+    private void list(ClassLoader loader, final File file, final LinkedList<MapDefinition> defs) {
         if (file != null) {
             System.out.println(file.getPath());
 
@@ -58,17 +59,14 @@ public class GameSource {
 //                }
             }
         }
-        for (final GameDefinition def : defs) {
-            def.source = this;
-        }
     }
 
-    private static void load(ClassLoader loader, final LinkedList<GameDefinition> games, final File file, final String prefix) {
+    private static void load(ClassLoader loader, final LinkedList<MapDefinition> mapList, final File file, final String prefix) {
 
         if (file.isDirectory()) {
             if (!file.getName().startsWith(".")) {
                 for (final File f : file.listFiles()) {
-                    load(loader, games, f, prefix + file.getName() + ".");
+                    load(loader, mapList, f, prefix + file.getName() + ".");
                 }
             }
         } else {
@@ -89,19 +87,9 @@ public class GameSource {
                     return;
                 }
                 if (clazz.isAnnotationPresent(GameInfo.class) && !name.contains("$")) {
-                    final GameDefinition def = new GameDefinition();
-                    final GameInfo info = clazz.getAnnotation(GameInfo.class);
-                    def.name = info.name();
-                    def.aliases = info.aliases();
-                    def.authors = info.authors();
-                    def.version = info.version();
-                    def.description = info.description();
-                    def.clazz = clazz;
-                    def.seed = info.seed();
-                    def.maxPlayers = info.maxPlayers();
-                    def.teamAmount = info.teamAmount();
-                    def.PvP = info.pvp();
-                    games.add(def);
+                    final MapInfo info = clazz.getAnnotation(MapInfo.class);
+                    final MapDefinition def = new MapDefinition(info.name(), info.aliases(), info.teamCapable(), info.airBourne(), info.itemSpawns());
+                    mapList.add(def);
                 }
             }
         }

@@ -19,7 +19,7 @@ public class Paths {
     public static final File pluginsDir = new File(new File(GameClassLoader.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent());
     public static final File MCPartyDir;
     public static final File MCPartyConfig;
-    public static final File sourceDir;
+    public static final File mapDir;
     public static final File compiledDir;
     public static final File schematicDir;
     public static final File serverDir;
@@ -37,9 +37,9 @@ public class Paths {
                 Logger.getLogger(Paths.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        sourceDir = new File(MCPartyDir.getPath() + File.separator + "MCGMSources");
-        if (!sourceDir.exists()) {
-            sourceDir.mkdirs();
+        mapDir = new File(MCPartyDir.getPath() + File.separator + "MapsCompiled");
+        if (!mapDir.exists()) {
+            mapDir.mkdirs();
         }
         compiledDir = new File(MCPartyDir.getPath() + File.separator + "MCGMCompiled");
         if (!compiledDir.exists()) {

@@ -25,6 +25,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 /*
  * To change this template, choose Tools | Templates
@@ -38,32 +40,34 @@ import org.bukkit.inventory.PlayerInventory;
 gameTime = -1, description = "Much like Super smash brawl, in this game the idea is to knock your opponent off of the map! "
 + "Learn the different item effects!")
 public class ItemSlap extends Minigame {
-
+    
     Location[] playerSpawns = new Location[]{};
     Location[] itemSpawns = new Location[]{};
     HashMap<Player, Integer> playerPercent = new HashMap<>();
     HashMap<Player, Integer> playerLives = new HashMap<>();
     HashMap<Player, Player> playerLastHitter = new HashMap<>();
-
+    
     public void performDeath(Player p) {
         int LivesLeft = playerLives.get(p);
         if (LivesLeft == 1) {
-            playing.remove(p);
-            if (playing.size() == 1) {
-                Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, playing.get(0)));
+            currentlyPlaying.remove(p);
+            if (currentlyPlaying.size() == 1) {
+                Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, currentlyPlaying.get(0)));
             }
         } else {
+            p.setFallDistance(0f);
+            WorldUtils.teleport(p, playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
+            LivesLeft--;
             playerPercent.put(p, 100);
             showPlayerPercent(p);
-            WorldUtils.teleport(p, playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)]);
-            playerLives.put(p, LivesLeft -= 1);
+            playerLives.put(p, LivesLeft);
             p.getInventory().clear();
             p.setHealth(20);
             p.setFoodLevel(20);
             p.sendMessage(ChatColor.RED + "You Died, You have " + ChatColor.GREEN + playerLives.get(p) + ChatColor.RED + " Lives left!");
         }
     }
-
+    
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent e) {
         e.getPlayer().setWalkSpeed((float) itemDetails(e.getPlayer().getItemInHand().getType())[4]);
@@ -110,7 +114,7 @@ public class ItemSlap extends Minigame {
                 return null;
         }
     }
-
+    
     public Sound itemSound(Material m) {
         switch (m) {
             //HEALS
@@ -141,7 +145,7 @@ public class ItemSlap extends Minigame {
                 return null;
         }
     }
-
+    
     @EventHandler
     public void onPlayerPickupItem(PlayerPickupItemEvent e) {
         boolean canHandle = false;
@@ -150,7 +154,7 @@ public class ItemSlap extends Minigame {
                 canHandle = true;
                 break;
             }
-
+            
         }
         if (canHandle) {
             int heal = (int) itemDetails(e.getItem().getItemStack().getType())[0];
@@ -176,7 +180,7 @@ public class ItemSlap extends Minigame {
             e.setCancelled(toCancel);
         }
     }
-
+    
     @EventHandler
     public void onPlayerDamageFromEntity(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player) {
@@ -197,40 +201,38 @@ public class ItemSlap extends Minigame {
         }
     }
     public ArrayList<Material> itemProbabilityList;
-
+    
     public Material randomSpawn() {
         return itemProbabilityList.get(Misc.getRandom(0, itemProbabilityList.size() - 1));
     }
-
+    
     public void showPlayerPercent(Player m) {
         m.setLevel(playerPercent.get(m));
     }
-
+    
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         Entity player = event.getEntity();
         if (player instanceof Player) {
             Player p = (Player) player;
             p.setLevel(playerPercent.get(p));
-
             Integer damage = event.getDamage();
             Integer pHealth = p.getHealth();
             if (pHealth - damage <= 0) {
                 performDeath(p);
                 event.setCancelled(true);
             }
-
+            
         }
     }
     int timeToItemSpawn = 5;
-
+    
     @Override
     public void minigameTick() {
-        for (Player e : playing) {
-            synchronized (playing) {
-                if (e.getPlayer().getLocation().getY() < 130) {
-                    performDeath(e.getPlayer());
-                }
+        for (Player e : currentlyPlaying) {
+            if (e.getLocation().getY() < 130) {
+                System.out.println("calledVelocity");
+                performDeath(e);
             }
         }
         if (itemSpawns.length != 0) {
@@ -244,7 +246,7 @@ public class ItemSlap extends Minigame {
             timeToItemSpawn--;
         }
     }
-
+    
     @Override
     public void generateGame() {
         WorldUtils.loadArea(new File(Paths.schematicDir.getPath() + "/SkyArenaDrops.schematic"), new Vector(core.getWorldManager().getMinigameWorld().getSpawnLocation().getBlockX(),
@@ -262,18 +264,18 @@ public class ItemSlap extends Minigame {
                 for (int i = 0; i < itemDetails(m)[5]; i++) {
                     itemProbabilityList.add(m);
                 }
-
+                
             }
         }
     }
-
+    
     @Override
     public void onTimeUp() {
     }
-
+    
     @Override
     public void startGame() {
-        for (Player p : playing) {
+        for (Player p : currentlyPlaying) {
             Location teleport = playerSpawns[Misc.getRandom(0, playerSpawns.length - 1)];
             WorldUtils.teleport(p, teleport);
             playerPercent.put(p, 100);
@@ -282,14 +284,14 @@ public class ItemSlap extends Minigame {
             inventory.clear();
         }
     }
-
+    
     @Override
     public void onEnd() {
         for (Player p : core.getGameManager().getPlaying()) {
             p.setWalkSpeed(0.2f);
         }
     }
-
+    
     @Override
     public void playerDisconnect(Player player) {
         player.setWalkSpeed(0.2f);

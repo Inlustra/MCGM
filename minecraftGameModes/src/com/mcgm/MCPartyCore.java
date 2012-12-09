@@ -12,10 +12,10 @@ import com.mcgm.game.sign.PlaySignHandler;
 import com.mcgm.manager.CommandManager;
 import com.mcgm.manager.FileManager;
 import com.mcgm.manager.GameManager;
-import com.mcgm.manager.PostManager;
 import com.mcgm.manager.SignManager;
+import com.mcgm.manager.WebManager;
 import com.mcgm.manager.WorldManager;
-import com.mcgm.player.PlayerManager;
+import com.mcgm.manager.PlayerManager;
 import com.mcgm.player.TagPacketHandler;
 import com.mcgm.utils.WorldUtils;
 import java.util.ArrayList;
@@ -33,8 +33,8 @@ public final class MCPartyCore extends JavaPlugin {
 
     private CommandManager commandManager;
     private WorldManager worldManager;
+    private WebManager webManager;
     private GameManager gameManager;
-    private PostManager postManager;
     private DisguiseCraftAPI disguiseCraftAPI;
     private ProtocolManager protocolManager;
     private FileManager fileManager;
@@ -84,7 +84,7 @@ public final class MCPartyCore extends JavaPlugin {
                 WorldUtils.getMainSpawn().getBlockZ());
         gameManager = new GameManager(this);
         gameManager.loadGameList(null);
-        postManager = new PostManager(this);
+        webManager = new WebManager(this);
         playerManager = new PlayerManager(this);
         signManager = new SignManager(this);
         gameManager.loadManager();
@@ -108,10 +108,6 @@ public final class MCPartyCore extends JavaPlugin {
         return gameManager;
     }
 
-    public PostManager getPostManager() {
-        return postManager;
-    }
-
     public DisguiseCraftAPI getDisguiseCraftAPI() {
         return disguiseCraftAPI;
     }
@@ -130,5 +126,9 @@ public final class MCPartyCore extends JavaPlugin {
 
     public SignManager getSignManager() {
         return signManager;
+    }
+
+    public WebManager getWebManager() {
+        return webManager;
     }
 }

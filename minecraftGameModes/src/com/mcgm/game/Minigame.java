@@ -23,22 +23,23 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
  */
 public abstract class Minigame implements Listener {
 
-    public final MCPartyCore core;
-    public final String name;
-    public final double version;
-    public final String[] authors;
-    public final String description;
-    public int teamAmount;
-    public boolean pvpEnabled;
-    public int maxPlayers;
-    public int gameTime;
-    public Player[] winners;
-    public int credits;
-    public ArrayList<Player> playing;
-    public Team[] teams;
-    public ChatColor[] teamColors = new ChatColor[]{ChatColor.RED, ChatColor.BLUE, ChatColor.GREEN, ChatColor.YELLOW,
+    protected final MCPartyCore core;
+    private final String name;
+    private final double version;
+    private final String[] authors;
+    private final String description;
+    private boolean joinable;
+    private int teamAmount;
+    private boolean pvpEnabled;
+    private int maxPlayers;
+    private int gameTime;
+    private Player[] winners;
+    private int credits;
+    protected ArrayList<Player> currentlyPlaying;
+    private Team[] teams;
+    private ChatColor[] teamColors = new ChatColor[]{ChatColor.RED, ChatColor.BLUE, ChatColor.GREEN, ChatColor.YELLOW,
         ChatColor.DARK_PURPLE, ChatColor.AQUA, ChatColor.WHITE, ChatColor.BLACK};
-    public Player[] startingPlayers;
+    private ArrayList<Player> startingPlayers;
 
     protected Minigame() {
         GameInfo f = this.getClass().getAnnotation(GameInfo.class);
@@ -51,8 +52,9 @@ public abstract class Minigame implements Listener {
         pvpEnabled = f.pvp();
         maxPlayers = f.maxPlayers();
         gameTime = f.gameTime();
-        playing = MCPartyCore.getInstance().getGameManager().getPlaying();
-        startingPlayers = playing.toArray(new Player[playing.size()]);
+        joinable = false;
+        currentlyPlaying = MCPartyCore.getInstance().getGameManager().getPlaying();
+        startingPlayers = (ArrayList<Player>) currentlyPlaying.clone();
         teamAmount = f.teamAmount();
         if (teamAmount > 0) {
             teams = new Team[teamAmount];
@@ -62,7 +64,7 @@ public abstract class Minigame implements Listener {
                 teams[i] = new Team(teamColors[i]);
             }
             int currTeam = 0;
-            for (Player p : playing) {
+            for (Player p : currentlyPlaying) {
                 Misc.outPrint(currTeam + "");
                 teams[currTeam].addPlayer(p);
                 currTeam = currTeam++ == teamAmount ? 0 : currTeam++;
@@ -74,7 +76,7 @@ public abstract class Minigame implements Listener {
     }
 
     public void sendPlayingMessage(String s) {
-        for (Player p : playing) {
+        for (Player p : currentlyPlaying) {
             p.sendMessage(s);
         }
     }
@@ -90,6 +92,10 @@ public abstract class Minigame implements Listener {
     public abstract void minigameTick();
 
     public abstract void playerDisconnect(Player player);
+
+    public boolean isJoinable() {
+        return joinable;
+    }
 
     public String getName() {
         return name;
@@ -131,8 +137,8 @@ public abstract class Minigame implements Listener {
         return credits;
     }
 
-    public ArrayList<Player> getPlaying() {
-        return playing;
+    public ArrayList<Player> getCurrentlyPlaying() {
+        return currentlyPlaying;
     }
 
     public MCPartyCore getPlugin() {
@@ -161,5 +167,25 @@ public abstract class Minigame implements Listener {
             }
         }
         return null;
+    }
+
+    public MCPartyCore getCore() {
+        return core;
+    }
+
+    public Team[] getTeams() {
+        return teams;
+    }
+
+    public ChatColor[] getTeamColors() {
+        return teamColors;
+    }
+
+    public ArrayList<Player> getStartingPlayers() {
+        return startingPlayers;
+    }
+
+    public void setGameTime(int gameTime) {
+        this.gameTime = gameTime;
     }
 }
