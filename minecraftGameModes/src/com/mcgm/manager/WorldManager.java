@@ -7,15 +7,15 @@ package com.mcgm.manager;
 import com.mcgm.MCPartyCore;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.WorldUtils;
-import com.mcgm.player.teleport.PlayerTeleport;
 import java.io.File;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.Map;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import net.minecraft.server.RegionFile;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -55,6 +55,7 @@ public class WorldManager {
                 Misc.outPrintWarning("World " + w + " started Loading!");
                 WorldCreator creator = WorldCreator.name(w);
                 doLoad(creator);
+                bindRegionFiles();
             }
         }
     }
@@ -72,7 +73,7 @@ public class WorldManager {
 
     public boolean deleteWorld(String name, boolean deleteWorldFolder) {
         World world = loadedWorlds.get(name);
-
+        clearWorldReference(name);
         try {
             if (world != null) {
                 File worldFile = world.getWorldFolder();
@@ -92,6 +93,59 @@ public class WorldManager {
             e.printStackTrace();
             return false;
         }
+    }
+    private static HashMap regionfiles;
+    private static Field rafField;
+
+    private void bindRegionFiles() {
+        try {
+            Field a = net.minecraft.server.RegionFileCache.class.getDeclaredField("a");
+            a.setAccessible(true);
+            regionfiles = (HashMap) a.get(null);
+            rafField = net.minecraft.server.RegionFile.class.getDeclaredField("c");
+            rafField.setAccessible(true);
+            System.out.println("Successfully bound to region file cache.");
+        } catch (Throwable t) {
+            System.out.println("Error binding to region file cache.");
+            t.printStackTrace();
+        }
+    }
+
+    private synchronized boolean clearWorldReference(String worldName) {
+        if (regionfiles == null) {
+            return false;
+        }
+        if (rafField == null) {
+            return false;
+        }
+
+        ArrayList<Object> removedKeys = new ArrayList<Object>();
+        try {
+            for (Object o : regionfiles.entrySet()) {
+                Map.Entry e = (Map.Entry) o;
+                File f = (File) e.getKey();
+
+                if (f.toString().startsWith("." + File.separator + worldName)) {
+                    RegionFile file = (RegionFile) e.getValue();
+                    try {
+                        RandomAccessFile raf = (RandomAccessFile) rafField.get(file);
+                        raf.close();
+                        System.out.println("Removed World Cache Reference: "+f.getPath());
+                        removedKeys.add(f);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            System.out.println("Exception while removing world reference for '" + worldName + "'!");
+            ex.printStackTrace();
+        }
+        for (Object key : removedKeys) {
+            regionfiles.remove(key);
+        }
+
+        return true;
     }
 
     public boolean regenWorld(String name, boolean useNewSeed, boolean randomSeed, String seed) {

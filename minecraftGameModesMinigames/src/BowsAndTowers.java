@@ -1,6 +1,7 @@
 
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
+import com.mcgm.game.event.PlayerWinEvent;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.Misc;
 import com.mcgm.utils.WorldUtils;
@@ -30,7 +31,7 @@ import org.bukkit.inventory.PlayerInventory;
  * @author Thomas
  */
 @GameInfo(name = "Bows and Towers", aliases = {"BAT"}, pvp = false, authors = {"Pt"},
-gameTime = -1, description = "desc", seed = "-1793484691")
+gameTime = -1, description = "desc", seed = "-1793484691", infiniteFood = true)
 public class BowsAndTowers extends Minigame {
 
     Location spawn = core.getWorldManager().getMinigameWorld().getSpawnLocation();
@@ -44,12 +45,11 @@ public class BowsAndTowers extends Minigame {
             if (playerStartHeight.containsKey(e.getPlayer())) {
                 double distanceNeeded = 100 - playerStartHeight.get(e.getPlayer());
                 double blocksMoved = playerLoc.getY() - playerStartHeight.get(e.getPlayer());
-
                 double difference = (blocksMoved / distanceNeeded) * 100;
-
                 e.getPlayer().setLevel((int) difference);
-                if (playerLoc.getY() > 100) {
-                    Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(this, false, e.getPlayer()));
+                if (playerLoc.getY() >= 100) {
+                    callPlayerWin(e.getPlayer());
+                    endGame(null);
                 }
             }
         }
@@ -60,7 +60,7 @@ public class BowsAndTowers extends Minigame {
     public void onEntityDeath(EntityDeathEvent e) {
         Player killer = e.getEntity().getKiller();
         if (playerTowers.containsKey(killer)) {
-            if (core.getPlayerManager().getPlayerProperties(killer).isVIP()) {
+            if (core.getPlayerManager().isVIP(killer)) {
                 playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.DIAMOND_BLOCK, true).getLocation());
             } else {
                 playerTowers.put(killer, makeLayer(playerTowers.get(killer).getBlock(), Material.BRICK, true).getLocation());
@@ -119,12 +119,22 @@ public class BowsAndTowers extends Minigame {
     @Override
     public void startGame() {
         for (Player p : currentlyPlaying) {
-            Location tower = new Location(spawn.getWorld(), spawn.getBlockX() + Misc.getRandom(-10, 10), spawn.getBlockY(), spawn.getBlockZ() + Misc.getRandom(-10, 10));
+            ArrayList<Integer> excludesX = new ArrayList<>();
+            ArrayList<Integer> excludesZ = new ArrayList<>();
+            int xRand = Misc.getRandomWithExclusion(-10, 10, Misc.toIntArray(excludesX));
+            int zRand = Misc.getRandomWithExclusion(-10, 10, Misc.toIntArray(excludesZ));
+            excludesX.add(xRand);
+            excludesX.add(xRand + 1);
+            excludesX.add(xRand - 1);
+            excludesZ.add(zRand + 1);
+            excludesZ.add(zRand - 1);
+            excludesZ.add(zRand);
+            Location tower = new Location(spawn.getWorld(), spawn.getBlockX() + xRand, spawn.getBlockY(), spawn.getBlockZ() + zRand);
             playerTowers.put(p, tower);
 
             Block towerCore = playerTowers.get(p).getBlock();
             Block newTowerCore;
-            if (core.getPlayerManager().getPlayerProperties(p).isVIP()) {
+            if (core.getPlayerManager().isVIP(p)) {
                 newTowerCore = makeLayer(towerCore, Material.DIAMOND_BLOCK, true);
             } else {
                 newTowerCore = makeLayer(towerCore, Material.BRICK, true);
@@ -175,9 +185,5 @@ public class BowsAndTowers extends Minigame {
 
     @Override
     public void onEnd() {
-    }
-
-    @Override
-    public void playerDisconnect(Player player) {
     }
 }

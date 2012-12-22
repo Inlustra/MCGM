@@ -24,6 +24,7 @@ public class GameEndEvent extends Event {
     private Player[] winners;
     private boolean timeUp;
     private Minigame minigame;
+    private Team team = null;
 
     public GameEndEvent(Minigame m, boolean timeUp, Player... winners) {
         this.winners = winners;
@@ -31,8 +32,13 @@ public class GameEndEvent extends Event {
     }
 
     public GameEndEvent(Minigame m, boolean timeUp, Team t) {
+        this.team = t;
         this.winners = t.getTeamPlayers().toArray(new Player[t.getTeamPlayers().size()]);
         this.minigame = m;
+    }
+
+    public Team getTeam() {
+        return team;
     }
 
     public Minigame getMinigame() {

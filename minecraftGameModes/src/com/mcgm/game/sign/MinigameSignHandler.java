@@ -6,7 +6,9 @@ package com.mcgm.game.sign;
 
 import com.mcgm.MCPartyCore;
 import com.mcgm.game.provider.GameDefinition;
+import com.mcgm.utils.Misc;
 import java.util.HashMap;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.block.Sign;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -20,20 +22,20 @@ public class MinigameSignHandler extends SignHandler {
     int currentSign = 0;
     public HashMap<Sign, GameDefinition> signMap;
 
-    public MinigameSignHandler(String handlingText) {
-        super(handlingText);
+    public MinigameSignHandler(String configText, String handlingText) {
+        super(configText, handlingText);
     }
 
     @Override
     public SignTask signSet(SignChangeEvent e) {
-        setSignName((Sign) e.getBlock().getState(), e.getLines());
+        setSignName((Sign) e.getBlock().getState());
         e.setCancelled(true);
         return setSignTask();
     }
 
     @Override
     public SignTask onSignLoad(Sign s, String name) {
-        setSignName(s, null);
+        setSignName(s);
         return setSignTask();
     }
 
@@ -49,9 +51,21 @@ public class MinigameSignHandler extends SignHandler {
         };
     }
 
-    public void setSignName(Sign s, String[] linesAdded) {
-        if (MCPartyCore.getInstance().getGameManager().getGameDefs().size() > currentSign) {
-            GameDefinition gdef = MCPartyCore.getInstance().getGameManager().getGameDefs().get(currentSign);
+    public void updateSignVotes() {
+        int queuesize = MCPartyCore.getInstance().getGameManager().getPlaying().size();
+        if (signMap != null) {
+            for (Sign s : signMap.keySet()) {
+                int votes = signMap.get(s).votes;
+                s.setLine(3, "Votes " + votes + " / " + queuesize);
+                s.update();
+            }
+        }
+    }
+
+    public void setSignName(Sign s) {
+        if (MCPartyCore.getInstance().getGameManager().getPlayableGameDefs().size() > currentSign) {
+            GameDefinition gdef = MCPartyCore.getInstance().getGameManager().getPlayableGameDefs().get(currentSign);
+            System.out.println(gdef.name);
             if (gdef != null) {
                 if (signMap == null) {
                     signMap = new HashMap<>();
@@ -61,22 +75,27 @@ public class MinigameSignHandler extends SignHandler {
                 }
                 s.setLine(0, "");
                 if (gdef.getName().length() >= 14) {
-                    String[] string = gdef.getName().split(" ");
-                    s.setLine(0, "");
-                    s.setLine(1, string[0].trim());
-                    s.setLine(2, string[1].trim());
-                    s.setLine(3, string.length >= 3 ? string[2].trim() : "");
+                    String[] string = Misc.addLinebreaks(gdef.getName(), 12);
+                    s.setLine(0, StringUtils.capitalize(string[0]));
+                    s.setLine(1, StringUtils.capitalize(string.length > 0 ? string[1] : ""));
                 } else {
-                    s.setLine(2, "");
-                    s.setLine(1, gdef.getName());
-                    s.setLine(3, "");
+                    s.setLine(0, StringUtils.capitalize(gdef.getName()));
+                    s.setLine(1, "");
                 }
+                s.setLine(2, "");
+                s.setLine(3, "Votes 0 / 0");
                 currentSign++;
             } else {
-                s.setLine(0, "No games left!");
+                s.setLine(0, "");
+                s.setLine(1, "More coming");
+                s.setLine(2, "soon!");
+                s.setLine(3, "");
             }
         } else {
-            s.setLine(0, "No games left!");
+            s.setLine(0, "");
+            s.setLine(1, "More coming");
+            s.setLine(2, "soon!");
+            s.setLine(3, "");
         }
         s.update(true);
     }

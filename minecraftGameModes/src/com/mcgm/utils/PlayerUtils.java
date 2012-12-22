@@ -7,6 +7,7 @@ package com.mcgm.utils;
 import com.mcgm.MCPartyCore;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.Vector;
 
 /**
  *
@@ -21,6 +22,9 @@ public class PlayerUtils {
         p.setWalkSpeed(0.2F);
         p.setLevel(0);
         p.setFireTicks(0);
+        p.setFallDistance(0);
+        p.setVelocity(new Vector(0, 0, 0));
+        Misc.refreshPlayer(p);
         for (PotionEffect effect : p.getActivePotionEffects()) {
             p.removePotionEffect(effect.getType());
         }

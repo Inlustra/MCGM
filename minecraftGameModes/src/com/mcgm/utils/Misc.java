@@ -4,10 +4,19 @@
  */
 package com.mcgm.utils;
 
+import com.comphenix.protocol.injector.BukkitUnwrapper;
+import com.comphenix.protocol.reflect.FieldUtils;
+import com.comphenix.protocol.reflect.FuzzyReflection;
 import com.google.common.collect.Lists;
 import com.mcgm.MCPartyCore;
 import java.io.File;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.StringTokenizer;
 import org.bukkit.entity.Player;
 
 /**
@@ -16,20 +25,65 @@ import org.bukkit.entity.Player;
  */
 public class Misc {
 
-    public static void refreshPlayer(Player watched) {
-
-        int view = MCPartyCore.getInstance().getServer().getViewDistance() * 16;
-        List<Player> observers = Lists.newArrayList();
-
-        // Get nearby observers
-        for (Player observer : getPlayersWithin(watched, view)) {
-            if (!observer.equals(watched) && observer.canSee(watched)) {
-                observers.add(observer);
+    public static <T, E> T getKeyByValue(Map<T, E> map, E value) {
+        for (Entry<T, E> entry : map.entrySet()) {
+            if (value.equals(entry.getValue())) {
+                return entry.getKey();
             }
         }
+        return null;
+    }
+    private static Field pingField;
 
-        // Send a new packet
-        refreshPlayer(watched, observers);
+    public static int getPlayerPing(Player player) throws IllegalAccessException {
+        BukkitUnwrapper unwrapper = new BukkitUnwrapper();
+        Object entity = unwrapper.unwrapItem(player);
+
+        // Next, get the "ping" field
+        if (pingField == null) {
+            pingField = FuzzyReflection.fromObject(entity).getFieldByName("ping");
+        }
+
+        return (Integer) FieldUtils.readField(pingField, entity);
+    }
+
+    public static String[] addLinebreaks(String input, int maxLineLength) {
+        StringTokenizer tok = new StringTokenizer(input, " ");
+        ArrayList<String> stringList = new ArrayList<>();
+        StringBuilder currentLine = new StringBuilder();
+        int lineLen = 0;
+        int currentSplit = 0;
+        while (tok.hasMoreTokens()) {
+            String word = tok.nextToken();
+
+            if (lineLen + word.length() > maxLineLength) {
+                stringList.add(currentLine.toString());
+                currentLine = new StringBuilder();
+                lineLen = 0;
+            }
+            lineLen += word.length();
+            currentLine.append(word).append(" ");
+        }
+        stringList.add(currentLine.toString());
+        return stringList.toArray(new String[stringList.size()]);
+    }
+
+    public static void refreshPlayer(Player watched) {
+        try {
+            int view = MCPartyCore.getInstance().getServer().getViewDistance() * 16;
+            List<Player> observers = Lists.newArrayList();
+
+            // Get nearby observers
+            for (Player observer : getPlayersWithin(watched, view)) {
+                if (!observer.equals(watched) && observer.canSee(watched)) {
+                    observers.add(observer);
+                }
+            }
+
+            // Send a new packet
+            refreshPlayer(watched, observers);
+        } catch (Exception e) {
+        }
     }
 
     /**
@@ -147,6 +201,26 @@ public class Misc {
 
     public static int getRandom(int min, int max) {
         return (int) (Math.random() * (max - min + 1)) + min;
+    }
+
+    public static int[] toIntArray(List<Integer> integerList) {
+        int[] intArray = new int[integerList.size()];
+        for (int i = 0; i < integerList.size(); i++) {
+            intArray[i] = integerList.get(i);
+        }
+        return intArray;
+    }
+    static Random r = new Random();
+
+    public static int getRandomWithExclusion(int start, int end, int... exclude) {
+        int random = start + r.nextInt(end - start + 1 - exclude.length);
+        for (int ex : exclude) {
+            if (random < ex) {
+                break;
+            }
+            random++;
+        }
+        return random;
     }
 
     public static void outPrint(String str) {

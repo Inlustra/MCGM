@@ -3,38 +3,30 @@ import com.mcgm.config.MCPartyConfig;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
 import com.mcgm.game.provider.GameInfo;
-import com.mcgm.utils.WorldUtils;
 import com.mcgm.utils.Misc;
+import com.mcgm.utils.WorldUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
-
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
-import org.bukkit.Location;
-import org.bukkit.block.BlockFace;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.util.Vector;
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /**
  *
  * @author Thomas
  */
 @GameInfo(name = "Volcano Madness", aliases = {"VM"}, pvp = false, authors = {"Tom"},
-gameTime = -1, description = "!", teamAmount = -1)
+gameTime = -1, description = "!", teamAmount = -1, infiniteFood = true)
 public class VolcanoMadness extends Minigame {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
-        currentlyPlaying.remove(e.getEntity());
-        if (currentlyPlaying.size() <= 1) {
-            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, currentlyPlaying.size() > 0 ? currentlyPlaying.get(0) : null));
-        }
+        callPlayerLose(e.getEntity());
     }
     ArrayList<Location> volcanoCenter = new ArrayList<>();
     ArrayList<Location> volcanoSides = new ArrayList<>();
@@ -113,7 +105,7 @@ public class VolcanoMadness extends Minigame {
 
     public void breakRandomFloorBlock(int amt) {
         for (int i = 0; i < amt; i++) {
-            Location l = spawnLoc[Misc.getRandom(0, spawnLoc.length)];
+            Location l = spawnLoc[Misc.getRandom(0, spawnLoc.length - 1)];
             l.getWorld().createExplosion(l, 5);
             l.getBlock().setType(Material.LAVA);
 
@@ -146,25 +138,25 @@ public class VolcanoMadness extends Minigame {
                 severity++;
                 switch (severity) {
                     case 1:
-                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying.toArray(new Player[currentlyPlaying.size()]), "VolcanoMadness.severity" + severity);
                         break;
                     case 2:
                         breakRandomVolcanoBlock(2);
                         break;
                     case 4:
-                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying.toArray(new Player[currentlyPlaying.size()]), "VolcanoMadness.severity" + severity);
                         break;
                     case 5:
                         breakRandomSidesBlock(3);
                         break;
                     case 8:
-                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying.toArray(new Player[currentlyPlaying.size()]), "VolcanoMadness.severity" + severity);
                         break;
                     case 12:
-                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying.toArray(new Player[currentlyPlaying.size()]), "VolcanoMadness.severity" + severity);
                         break;
                     case 15:
-                        MCPartyConfig.sendMessage(currentlyPlaying, "VolcanoMadness.severity" + severity);
+                        MCPartyConfig.sendMessage(currentlyPlaying.toArray(new Player[currentlyPlaying.size()]), "VolcanoMadness.severity" + severity);
                         break;
                     case 16:
                         Bukkit.getPluginManager().callEvent(new GameEndEvent(this, true, currentlyPlaying.toArray(new Player[currentlyPlaying.size()])));
@@ -233,9 +225,11 @@ public class VolcanoMadness extends Minigame {
 
     @Override
     public void playerDisconnect(Player player) {
-        currentlyPlaying.remove(player);
+        if (currentlyPlaying.contains(player)) {
+            currentlyPlaying.remove(player);
+        }
         if (currentlyPlaying.size() <= 1) {
-            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, currentlyPlaying.size() > 0 ? currentlyPlaying.get(0) : null));
+            Bukkit.getPluginManager().callEvent(new GameEndEvent(this, false, currentlyPlaying.get(0)));
         }
     }
 

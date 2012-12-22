@@ -8,6 +8,7 @@ import com.mcgm.MCPartyCore;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 /**
  *
@@ -35,6 +36,8 @@ public class PlayerTeleport {
         Bukkit.getScheduler().scheduleSyncDelayedTask(MCPartyCore.getInstance(), new Runnable() {
             @Override
             public void run() {
+                p.setFallDistance(0f);
+                p.setVelocity(new Vector(0, 0, 0));
                 p.teleport(l);
             }
         });

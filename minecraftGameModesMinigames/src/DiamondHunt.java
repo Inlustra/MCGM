@@ -26,7 +26,7 @@ import org.bukkit.inventory.PlayerInventory;
  * @author Thomas
  */
 @GameInfo(name = "Diamond Hunt", aliases = {"DH"}, pvp = false, authors = {"Pt"},
-gameTime = -1, description = "First to find the diamonds wins!")
+gameTime = -1, description = "First to find the diamonds wins!", infiniteFood = true)
 public class DiamondHunt extends Minigame {
 
     ArrayList<Location> diamondLocations = new ArrayList<>();
@@ -43,12 +43,22 @@ public class DiamondHunt extends Minigame {
         }
     }
 
+    public void teleportPlayerToSpawn(Player p) {
+        Location teleport = new Location(cube.getWorld(), cube.getBlockX() + Misc.getRandom(1, 20), cube.getBlockY() + 1, cube.getBlockZ() + Misc.getRandom(1, 20));
+        WorldUtils.teleport(p, teleport);
+    }
+
     @Override
     public void minigameTick() {
         for (Player player : currentlyPlaying) {
+            if (player.getLocation().getY() < 130) {
+                teleportPlayerToSpawn(player);
+                Bukkit.broadcastMessage("Clumsy " + ChatColor.GOLD + player.getName() + ChatColor.WHITE + " fell off the block of dirt didn't he.");
+            }
             PlayerInventory inventory = player.getInventory();
             if (inventory.contains(Material.DIAMOND)) {
                 Bukkit.broadcastMessage("Player " + ChatColor.GOLD + player.getName().toString() + ChatColor.WHITE + " wins!");
+                callPlayerWin(player);
                 Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(this, false, player));
             }
 
@@ -60,7 +70,7 @@ public class DiamondHunt extends Minigame {
 
     @Override
     public void generateGame() {
-        
+
         for (int i = 0; i < 20; i++) {
             for (int x = 0; x < 20; x++) {
                 for (int a = 0; a < 20; a++) {
@@ -109,8 +119,7 @@ public class DiamondHunt extends Minigame {
     @Override
     public void startGame() {
         for (Player p : currentlyPlaying) {
-            Location teleport = new Location(cube.getWorld(), cube.getBlockX() + Misc.getRandom(1, 20), cube.getBlockY() + 1, cube.getBlockZ() + Misc.getRandom(1, 20));
-            WorldUtils.teleport(p,teleport);
+            teleportPlayerToSpawn(p);
             PlayerInventory inventory = p.getInventory();
             inventory.clear();
             ItemStack pick = new ItemStack(Material.DIAMOND_PICKAXE, 1);
@@ -125,9 +134,5 @@ public class DiamondHunt extends Minigame {
 
     @Override
     public void onEnd() {
-    }
-
-    @Override
-    public void playerDisconnect(Player player) {
     }
 }

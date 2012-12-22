@@ -72,7 +72,9 @@ public class WebManager implements Listener {
             p.put("type", type);
             p.put("data", data);
             try {
-                System.out.println(p.toJSONString());
+                if (MCPartyConfig.getBoolean("Development.OutputWebSocket")) {
+                    System.out.println(p.toJSONString());
+                }
                 socketChannel.write(ByteBuffer.wrap((p.toJSONString() + "\n").getBytes()));
             } catch (IOException ex) {
                 Logger.getLogger(WebManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -87,6 +89,9 @@ public class WebManager implements Listener {
             case "player":
                 plugin.getPlayerManager().login((JSONObject) jdata.get("data"));
                 break;
+            case "playerfirst":
+                plugin.getPlayerManager().loginFirst((JSONObject) jdata.get("data"));
+                break;
             case "badlogin":
                 Player p = plugin.getServer().
                         getPlayer((String) jdata.get("data"));
@@ -97,25 +102,29 @@ public class WebManager implements Listener {
                 break;
         }
     }
+    InetSocketAddress isa = new InetSocketAddress("www.mcparty.co", 19283);
     Thread serverReconnect = new Thread(new Runnable() {
         @Override
         public void run() {
-            while (!socketChannel.isConnected()) {
-                InetSocketAddress isa = new InetSocketAddress("www.mcparty.co", 19283);
-                try {
+            try {
+                while (!socketChannel.connect(isa)) {
                     try {
-                        socketChannel.open(isa);
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(WebManager.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    try {
+                        System.out.println("Attempting reconnect");
                         socketChannel.configureBlocking(false);
                     } catch (IOException ex) {
-                        System.out.println("Failed connection to: (" + isa + ")");
+                        System.out.println("Failed to connect to: (" + isa + ")");
                     }
-                    Thread.sleep(5000);
-                    System.out.println("Attempting reconnect");
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(WebManager.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                System.out.println("Connected to: " + isa);
+                serverRecieve.start();
+            } catch (IOException ex) {
+                Logger.getLogger(WebManager.class.getName()).log(Level.SEVERE, null, ex);
             }
-            serverRecieve.start();
         }
     });
     Thread serverRecieve = new Thread(new Runnable() {
@@ -131,7 +140,9 @@ public class WebManager implements Listener {
                             handleRecieve((JSONObject) parser.parse(line));
                         } catch (Exception e) {
                         }
-                        System.out.println(line);
+                        if (MCPartyConfig.getBoolean("Development.OutputWebSocket")) {
+                            System.out.println(line);
+                        }
                         buff.clear();
                     }
                     Thread.sleep(500);

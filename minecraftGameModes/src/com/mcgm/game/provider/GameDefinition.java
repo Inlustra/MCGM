@@ -20,6 +20,7 @@ public class GameDefinition implements Comparable<GameDefinition> {
     public int votes = 0;
     public GameSource source;
     public Class clazz;
+    public boolean playable;
 
     public boolean isPvP() {
         return PvP;

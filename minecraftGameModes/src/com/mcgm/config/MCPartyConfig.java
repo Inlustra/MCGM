@@ -6,6 +6,7 @@ package com.mcgm.config;
 
 import com.mcgm.MCPartyCore;
 import com.mcgm.game.sign.SignHandler;
+import com.mcgm.manager.GameManager;
 import com.mcgm.utils.Paths;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -132,11 +133,15 @@ public class MCPartyConfig {
     }
 
     public static void sendMessage(ArrayList<Player> players, String key) {
-        sendMessage(players, key, (String) null);
+        synchronized (GameManager.playingQueueLock) {
+            sendMessage(players, key, (String) null);
+        }
     }
 
     public static void sendMessage(ArrayList<Player> players, String key, String... inputs) {
-        sendMessage(players.toArray(new CommandSender[players.size()]), key, (Object[]) inputs);
+        synchronized (GameManager.playingQueueLock) {
+            sendMessage(players.toArray(new CommandSender[players.size()]), key, (Object[]) inputs);
+        }
     }
 
     public static void reloadConfig(CommandSender cs) {

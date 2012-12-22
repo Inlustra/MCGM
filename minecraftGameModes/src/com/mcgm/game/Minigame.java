@@ -5,16 +5,23 @@
 package com.mcgm.game;
 
 import com.mcgm.MCPartyCore;
+import com.mcgm.game.event.GameEndEvent;
+import com.mcgm.game.event.PlayerLoseEvent;
+import com.mcgm.game.event.PlayerWinEvent;
 import com.mcgm.game.event.ReceiveNameTagEvent;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.player.Team;
 import com.mcgm.utils.Misc;
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 
 /**
@@ -29,17 +36,42 @@ public abstract class Minigame implements Listener {
     private final String[] authors;
     private final String description;
     private boolean joinable;
-    private int teamAmount;
     private boolean pvpEnabled;
+    private boolean blocksBreakable;
+    private boolean blocksPlaceable;
+    private boolean infiniteFood;
     private int maxPlayers;
     private int gameTime;
     private Player[] winners;
     private int credits;
-    protected ArrayList<Player> currentlyPlaying;
-    private Team[] teams;
-    private ChatColor[] teamColors = new ChatColor[]{ChatColor.RED, ChatColor.BLUE, ChatColor.GREEN, ChatColor.YELLOW,
-        ChatColor.DARK_PURPLE, ChatColor.AQUA, ChatColor.WHITE, ChatColor.BLACK};
-    private ArrayList<Player> startingPlayers;
+    protected CopyOnWriteArrayList<Player> currentlyPlaying;
+    private CopyOnWriteArrayList<Player> startingPlayers;
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent e) {
+        if (currentlyPlaying.contains(e.getPlayer())) {
+            e.setCancelled(!blocksBreakable);
+        }
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent e) {
+        if (currentlyPlaying.contains(e.getPlayer())) {
+            e.setCancelled(!blocksPlaceable);
+        }
+    }
+
+    @EventHandler
+    public void foodLevelChange(FoodLevelChangeEvent e) {
+        if (currentlyPlaying.contains((Player) e.getEntity())) {
+            e.setCancelled(!infiniteFood);
+        }
+    }
+
+    @EventHandler
+    public void playerChangeWorld(PlayerChangedWorldEvent e) {
+        Misc.refreshPlayer(e.getPlayer());
+    }
 
     protected Minigame() {
         GameInfo f = this.getClass().getAnnotation(GameInfo.class);
@@ -50,29 +82,16 @@ public abstract class Minigame implements Listener {
         authors = f.authors();
         description = f.description();
         pvpEnabled = f.pvp();
+        blocksBreakable = f.blocksBreakable();
+        blocksPlaceable = f.blocksPlaceable();
+        infiniteFood = f.infiniteFood();
         maxPlayers = f.maxPlayers();
         gameTime = f.gameTime();
         joinable = false;
         currentlyPlaying = MCPartyCore.getInstance().getGameManager().getPlaying();
-        startingPlayers = (ArrayList<Player>) currentlyPlaying.clone();
-        teamAmount = f.teamAmount();
-        if (teamAmount > 0) {
-            teams = new Team[teamAmount];
-        }
-        if (teamAmount != -1) {
-            for (int i = 0; i < teamAmount; i++) {
-                teams[i] = new Team(teamColors[i]);
-            }
-            int currTeam = 0;
-            for (Player p : currentlyPlaying) {
-                Misc.outPrint(currTeam + "");
-                teams[currTeam].addPlayer(p);
-                currTeam = currTeam++ == teamAmount ? 0 : currTeam++;
-            }
-        }
+        startingPlayers = (CopyOnWriteArrayList<Player>) currentlyPlaying.clone();
         core.getWorldManager().getMinigameWorld().setPVP(pvpEnabled);
         core.getServer().getPluginManager().registerEvents(this, core);
-
     }
 
     public void sendPlayingMessage(String s) {
@@ -90,8 +109,6 @@ public abstract class Minigame implements Listener {
     public abstract void onEnd();
 
     public abstract void minigameTick();
-
-    public abstract void playerDisconnect(Player player);
 
     public boolean isJoinable() {
         return joinable;
@@ -111,10 +128,6 @@ public abstract class Minigame implements Listener {
 
     public String getDescription() {
         return description;
-    }
-
-    public int getTeamAmount() {
-        return teamAmount;
     }
 
     public boolean isPvpEnabled() {
@@ -137,7 +150,7 @@ public abstract class Minigame implements Listener {
         return credits;
     }
 
-    public ArrayList<Player> getCurrentlyPlaying() {
+    public CopyOnWriteArrayList<Player> getCurrentlyPlaying() {
         return currentlyPlaying;
     }
 
@@ -145,47 +158,41 @@ public abstract class Minigame implements Listener {
         return core;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onReceiveNameTagEvent(ReceiveNameTagEvent event) {
-        if (teams != null) {
-            if (teams.length > 1) {
-                ChatColor c = getPlayerTeam(event.getWatched()).teamColor;
-                event.setTag(c + "[" + c.name() + "] " + event.getTag());
-            }
-        }
-    }
-
-    @EventHandler
-    public void playerChangeWorld(PlayerChangedWorldEvent e) {
-        Misc.refreshPlayer(e.getPlayer());
-    }
-
-    public Team getPlayerTeam(Player p) {
-        for (Team m : teams) {
-            if (m.getTeamPlayers().contains(p)) {
-                return m;
-            }
-        }
-        return null;
-    }
-
     public MCPartyCore getCore() {
         return core;
     }
 
-    public Team[] getTeams() {
-        return teams;
-    }
-
-    public ChatColor[] getTeamColors() {
-        return teamColors;
-    }
-
-    public ArrayList<Player> getStartingPlayers() {
+    public CopyOnWriteArrayList<Player> getStartingPlayers() {
         return startingPlayers;
     }
 
     public void setGameTime(int gameTime) {
         this.gameTime = gameTime;
+        if (getGameTime() > 0) {
+            for (Player p : currentlyPlaying) {
+                p.setLevel(getGameTime());
+            }
+        } else if (getGameTime() == 0) {
+            onTimeUp();
+            for (Player p : currentlyPlaying) {
+                p.setLevel(getGameTime());
+            }
+        }
+    }
+
+    public void callPlayerWin(Player... p) {
+        core.getGameManager().onPlayersWin(new PlayerWinEvent(this, p));
+    }
+
+    public void callPlayerLose(Player... p) {
+        core.getGameManager().onPlayersLose(new PlayerLoseEvent(this, p));
+    }
+
+    public void endGame(Player... winners) {
+        core.getGameManager().onGameEnd(new GameEndEvent(this, false, winners));
+    }
+
+    public void playerDisconnect(Player player) {
+        callPlayerLose(player);
     }
 }

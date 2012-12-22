@@ -8,6 +8,8 @@ import com.mcgm.MCPartyCore;
 import com.mcgm.config.MCPartyConfig;
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
+import com.mcgm.game.event.PlayerLoseEvent;
+import com.mcgm.game.event.PlayerWinEvent;
 import com.mcgm.game.map.MapDefinition;
 import com.mcgm.game.map.MapSource;
 import com.mcgm.game.provider.GameDefinition;
@@ -16,9 +18,12 @@ import com.mcgm.utils.Misc;
 import com.mcgm.utils.Paths;
 import com.mcgm.utils.PlayerUtils;
 import com.mcgm.utils.WorldUtils;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
@@ -27,11 +32,18 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.json.simple.JSONObject;
+import org.monstercraft.area.api.exception.InvalidWorldException;
+import org.monstercraft.area.api.wrappers.CubedArea;
 
 /**
  *
@@ -45,34 +57,87 @@ public class GameManager implements Listener {
     private String mapList;
     private GameSource gameSrc;
     private List<GameDefinition> gameDefs;
+    private List<GameDefinition> playableGameDefs;
     private String gameList;
     private MCPartyCore plugin;
-    private ArrayList<Player> playing;
+    private final CopyOnWriteArrayList<Player> playing;
     private int voteTime = 180;
+    private CubedArea playingQueue;
+    public static final Object playingQueueLock = new Object();
+    
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent e) {
+        if (e.getPlayer().getWorld() == plugin.getWorldManager().getMainWorld()) {
+            if (!e.getPlayer().isOp()) {
+                e.setCancelled(true);
+            }
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void foodLevelChange(FoodLevelChangeEvent event) {
+        if (event.getEntity().getLocation().getWorld() == plugin.getWorldManager().getMainWorld()) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent e) {
+        if (e.getPlayer().getWorld() == plugin.getWorldManager().getMainWorld()) {
+            if (!e.getPlayer().isOp()) {
+                e.setCancelled(true);
+            }
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onExplode(EntityExplodeEvent e) {
+        if (e.getLocation().getWorld() == plugin.getWorldManager().getMainWorld()) {
+            e.setCancelled(true);
+        }
+    }
     
     public GameManager(final MCPartyCore p) {
-        playing = new ArrayList<>();
+        playing = new CopyOnWriteArrayList<>();
         plugin = p;
+        try {
+            playingQueue = new CubedArea(MCPartyConfig.getLocation("playingQueue1"), MCPartyConfig.getLocation("playingQueue2"));
+        } catch (InvalidWorldException ex) {
+            Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
         int taskID = p.getServer().getScheduler().scheduleSyncRepeatingTask(p, new Runnable() {
             @Override
             public void run() {
                 if (currentMinigame != null) {
                     currentMinigame.setGameTime(currentMinigame.getGameTime() - 1);
-                    if (currentMinigame.getGameTime() > 0) {
-                        for (Player p : playing) {
-                            p.setLevel(currentMinigame.getGameTime());
-                        }
-                    }
                     currentMinigame.minigameTick();
                 } else {
                     if (playing.size() > 1) {
-                        for (Player p : playing) {
-                            p.setLevel(voteTime);
+                        synchronized (playingQueueLock) {
+                            for (Player p : playing) {
+                                p.setLevel(voteTime);
+                            }
                         }
                         if (voteTime == 0) {
                             performCountDown(5);
                         }
                         voteTime--;
+                    }
+                }
+                for (Player p : plugin.getServer().getOnlinePlayers()) {
+                    if (playingQueue.contains(p)) {
+                        if (!playing.contains(p)) {
+                            joinPlaying(p);
+                        }
+                    }
+                }
+                if (currentMinigame == null) {
+                    for (Player p : playing) {
+                        if (p.getWorld() == plugin.getWorldManager().getMainWorld()) {
+                            if (!playingQueue.contains(p)) {
+                                stopPlaying(p);
+                            }
+                        }
                     }
                 }
             }
@@ -86,6 +151,7 @@ public class GameManager implements Listener {
         if (playing.contains(p)) {
             playing.remove(p);
         }
+        plugin.getPlayerManager().removePlayer(p);
         if (currentMinigame != null) {
             if (currentMinigame.getCurrentlyPlaying().contains(p)) {
                 currentMinigame.playerDisconnect(p);
@@ -110,43 +176,53 @@ public class GameManager implements Listener {
         }, 20L);
     }
     
-    @EventHandler
+    public void onPlayersLose(PlayerLoseEvent e) {
+        for (Player p : e.getPlayers()) {
+            currentMinigame.getCurrentlyPlaying().remove(p);
+            JSONObject j = new JSONObject();
+            j.put("username", p.getName());
+            j.put("minigame", e.getMinigame().getName());
+            plugin.getWebManager().sendData("loser", j);
+            plugin.getPlayerManager().setLosses(p, plugin.getPlayerManager().getLosses(p) + 1);
+            PlayerUtils.cleanPlayer(p, false);
+            WorldUtils.teleportSafely(p, MCPartyConfig.getLocation("Minigame.LoserSpawn")
+                    .add(Misc.getRandom(-0.5, 0.5), 0, Misc.getRandom(-0.5, 0.5)));
+            p.sendMessage(MCPartyConfig.parse("Minigame.LosingMessage", e.getMinigame().getName()));
+            e.getMinigame().getStartingPlayers().remove(p);
+        }
+    }
+    
+    public void onPlayersWin(PlayerWinEvent e) {
+        for (Player p : e.getPlayers()) {
+            currentMinigame.getCurrentlyPlaying().remove(p);
+            JSONObject j = new JSONObject();
+            j.put("username", p.getName());
+            j.put("minigame", e.getMinigame().getName());
+            plugin.getWebManager().sendData("winner", j);
+            plugin.getPlayerManager().setCredits(p, plugin.getPlayerManager().getCredits(p)
+                    + e.getMinigame().getCredits());
+            plugin.getPlayerManager().setWins(p, plugin.getPlayerManager().getWins(p) + 1);
+            plugin.getPlayerManager().sendChange(p, "credits", e.getMinigame().getCredits());
+            PlayerUtils.cleanPlayer(p, false);
+            WorldUtils.teleportSafely(p, MCPartyConfig.getLocation("Minigame.WinnerSpawn")
+                    .add(Misc.getRandom(-1, 1), 0, Misc.getRandom(-1, 1)));
+            p.sendMessage(MCPartyConfig.parse("Minigame.WinningMessage", e.getMinigame().getName()));
+            e.getMinigame().getStartingPlayers().remove(p);
+        }
+    }
+    
     public void onGameEnd(GameEndEvent end) {
         if (currentMinigame != null) {
+            Bukkit.getServer().getPluginManager().callEvent(new PlayerLoseEvent(currentMinigame, currentMinigame.getCurrentlyPlaying().toArray(new Player[currentMinigame.getCurrentlyPlaying().size()])));
             Bukkit.broadcastMessage(MCPartyConfig.parse("Minigame.WinningMessage", end.getMinigame().getName(), Misc.buildPlayerString(end.getWinners(), " ")));
             Bukkit.broadcastMessage(MCPartyConfig.parse("Minigame.WinningMessage2", end.getMinigame().getCredits() + ""));
-            for (Player p : end.getWinners()) {
-                JSONObject j = new JSONObject();
-                j.put("username", p.getName());
-                j.put("minigame", end.getMinigame().getName());
-                plugin.getWebManager().sendData("winner", j);
-                plugin.getPlayerManager().getPlayerProperties().get(p)
-                        .setCredits(plugin.getPlayerManager().
-                        getPlayerProperties().get(p).getCredits() + end.getMinigame().getCredits());
-                plugin.getPlayerManager().getPlayerProperties().get(p)
-                        .setWins(plugin.getPlayerManager().
-                        getPlayerProperties().get(p).getWins() + 1);
-                end.getMinigame().getStartingPlayers().remove(p);
-                plugin.getPlayerManager().updateWeb(p, "credits", end.getMinigame().getCredits());
-                PlayerUtils.cleanPlayer(p, p.isOnline() ? true : false);
-            }
-            for (Player p : end.getMinigame().getStartingPlayers()) {
-                JSONObject j = new JSONObject();
-                j.put("username", p.getName());
-                j.put("minigame", end.getMinigame().getName());
-                plugin.getWebManager().sendData("loser", j);
-                plugin.getPlayerManager().getPlayerProperties().get(p)
-                        .setLosses(plugin.getPlayerManager().
-                        getPlayerProperties().get(p).getLosses() + 1);
-                p.sendMessage(MCPartyConfig.parse("Minigame.LosingMessage", end.getMinigame().getName()));
-            }
-            for (Player p : currentMinigame.getStartingPlayers()) {
-                PlayerUtils.cleanPlayer(p, p.isOnline() ? true : false);
-            }
             HandlerList.unregisterAll(currentMinigame);
             currentMinigame.onEnd();
-            playersVoted.clear();
             currentMinigame = null;
+            for (GameDefinition gd : playableGameDefs) {
+                gd.votes = 0;
+            }
+            playerVotes.clear();
             voteTime = 180;
             plugin.getWebManager().sendData("minigame", "Lobby");
         }
@@ -163,6 +239,9 @@ public class GameManager implements Listener {
         Command endgame = new Command("forceend", "Forces the end of the current minigame", "WORLDTP", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender cs, String string, String[] args) {
+                for (Player p : currentMinigame.getStartingPlayers()) {
+                    currentMinigame.callPlayerWin(p);
+                }
                 Bukkit.getServer().getPluginManager().callEvent(new GameEndEvent(currentMinigame, false, new Player[]{}));
                 return true;
             }
@@ -233,6 +312,23 @@ public class GameManager implements Listener {
                 return true;
             }
         };
+        Command saveLocation = new Command("savelocation", "Add location to config", "LOC", new ArrayList<String>()) {
+            @Override
+            public boolean execute(CommandSender cs, String string, String[] args) {
+                if (args.length != 0 && cs instanceof Player) {
+                    Player p = (Player) cs;
+                    MCPartyConfig.addLocation(args[0], p.getLocation());
+                    try {
+                        MCPartyConfig.getConfig().save(Paths.MCPartyConfig);
+                    } catch (IOException ex) {
+                        Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    cs.sendMessage("Location not added correctly");
+                }
+                return true;
+            }
+        };
         Command define = new Command("define", "Give the player the game description", "DEFINE", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender sender, String commandLabel, String[] args) {
@@ -248,6 +344,7 @@ public class GameManager implements Listener {
                 return true;
             }
         };
+        plugin.getCommandManager().addCommand(saveLocation);
         plugin.getCommandManager().addCommand(reload);
         plugin.getCommandManager().addCommand(list);
         plugin.getCommandManager().addCommand(vote);
@@ -259,15 +356,17 @@ public class GameManager implements Listener {
         plugin.getCommandManager().addCommand(startgame);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
-    List<Player> playersVoted = new ArrayList<>();
     
     public void joinPlaying(Player p2) {
         if (plugin.getPlayerManager().isPlayerLoggedIn(p2)) {
             if (!playing.contains(p2)) {
                 for (Player p : playing) {
-                    p.sendMessage(ChatColor.GOLD + p2.getName() + ChatColor.GREEN + " is now playing!");
+                    synchronized (playingQueueLock) {
+                        p.sendMessage(ChatColor.GOLD + p2.getName() + ChatColor.GREEN + " is now playing!");
+                    }
                 }
                 playing.add(p2);
+                plugin.getMinigameSignHandler().updateSignVotes();
                 if (currentMinigame == null) {
                     if (playing.size() > 1) {
                         MCPartyConfig.sendMessage(p2, "votesMessage");
@@ -282,37 +381,50 @@ public class GameManager implements Listener {
                 MCPartyConfig.sendMessage(p2, "alreadyPlaying");
             }
         } else {
-            MCPartyConfig.sendMessage(p2, "mustLogIn");
         }
     }
     
     public void stopPlaying(Player p) {
-        if (playing.contains(p)) {
-            playing.remove(p);
-            MCPartyConfig.sendMessage(p, "removePlaying");
-        } else {
-            MCPartyConfig.sendMessage(p, "notInPlayQueue");
+        synchronized (playingQueueLock) {
+            if (playing.contains(p)) {
+                playing.remove(p);
+                if (playerVotes.containsKey(p)) {
+                    playerVotes.get(p).votes--;
+                    playerVotes.remove(p);
+                }
+                plugin.getMinigameSignHandler().updateSignVotes();
+                MCPartyConfig.sendMessage(p, "removePlaying");
+                
+            } else {
+                MCPartyConfig.sendMessage(p, "notInPlayQueue");
+            }
         }
     }
+    private HashMap<Player, GameDefinition> playerVotes = new HashMap<>();
     
     public void addVote(Player p, GameDefinition gdef) {
-        if (playing.contains(p)) {
-            if (currentMinigame != null) {
-                p.sendMessage("§cA minigame is currently in play, please wait for it to end");
-            }
-            if (!playersVoted.contains(p)) {
-                playersVoted.add(p);
-                gdef.votes++;
-                MCPartyConfig.sendMessage(p, "addVote", gdef.getName());
-                MCPartyConfig.sendMessage(playing, "voteCounts", gdef.getName(), gdef.votes + "", playing.size() + "");
-                if (playing.size() == playersVoted.size() && playing.size() > 1) {
-                    performCountDown(5);
+        if (playing.size() > 1) {
+            if (playing.contains(p)) {
+                if (currentMinigame != null) {
+                    p.sendMessage("§cA minigame is currently in play, please wait for it to end");
+                }
+                if (!playerVotes.containsKey(p)) {
+                    playerVotes.put(p, gdef);
+                    gdef.votes++;
+                    plugin.getMinigameSignHandler().updateSignVotes();
+                    MCPartyConfig.sendMessage(p, "addVote", gdef.getName());
+                    MCPartyConfig.sendMessage(playing.toArray(new Player[playing.size()]), "voteCounts", gdef.getName(), gdef.votes + "", playing.size() + "");
+                    if (playing.size() == playerVotes.size() && playing.size() > 1) {
+                        performCountDown(5);
+                    }
+                } else {
+                    MCPartyConfig.sendMessage(p, "alreadyVoted", playerVotes);
                 }
             } else {
-                MCPartyConfig.sendMessage(p, "alreadyVoted", gdef.getName());
+                MCPartyConfig.sendMessage(p, "mustPlay");
             }
         } else {
-            MCPartyConfig.sendMessage(p, "mustPlay");
+            MCPartyConfig.sendMessage(p, "notEnoughPlayers");
         }
     }
     
@@ -324,7 +436,7 @@ public class GameManager implements Listener {
         
         GameDefinition gameToRun = game;
         if (game == null) {
-            GameDefinition highestVoted = gameDefs.get(0);
+            GameDefinition highestVoted = gameDefs.get(Misc.getRandom(0, gameDefs.size() - 1));
             for (GameDefinition gdef : gameDefs) {
                 if (gdef.votes > highestVoted.votes) {
                     highestVoted = gdef;
@@ -333,7 +445,7 @@ public class GameManager implements Listener {
             gameToRun = highestVoted;
         }
         
-        MCPartyConfig.sendMessage(playing, "chosenGame", gameToRun.getName());
+        MCPartyConfig.sendMessage(playing.toArray(new Player[playing.size()]), "chosenGame", gameToRun.getName());
         
         plugin.getWorldManager().regenWorld(WorldUtils.MINIGAME_WORLD, true, "".equals(gameToRun.getSeed()) ? true : false, "" + gameToRun.getSeed());
         
@@ -375,12 +487,32 @@ public class GameManager implements Listener {
         Bukkit.getScheduler().cancelTask(id);
     }
     
+    public int getVoteTime() {
+        return voteTime;
+    }
+    
+    public boolean isGamePlaying() {
+        return currentMinigame != null;
+    }
+    
+    public String currentGameName() {
+        if (isGamePlaying()) {
+            return currentMinigame.getName();
+        }
+        return "";
+    }
+    
     public void loadGameList(CommandSender cs) {
         gameSrc = new GameSource(Paths.compiledDir);
         gameDefs = gameSrc.list();
+        playableGameDefs = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
-        for (GameDefinition def : gameDefs) {
-            sb.append(def.getName()).append("(").append(Misc.buildString(def.aliases, ",")).append(") ");
+        
+        for (GameDefinition gd : gameDefs) {
+            if (gd.playable) {
+                playableGameDefs.add(gd);
+                sb.append(gd.getName()).append("(").append(Misc.buildString(gd.aliases, ",")).append(") ");
+            }
         }
         gameList = sb.toString();
         if (cs != null) {
@@ -398,7 +530,7 @@ public class GameManager implements Listener {
     }
     
     public GameDefinition getGame(String name) {
-        for (GameDefinition def : gameDefs) {
+        for (GameDefinition def : playableGameDefs) {
             for (String alias : def.aliases) {
                 if (alias.trim().toLowerCase().equals(name.trim().toLowerCase())) {
                     return def;
@@ -411,7 +543,7 @@ public class GameManager implements Listener {
         return null;
     }
     
-    public ArrayList<Player> getPlaying() {
+    public CopyOnWriteArrayList<Player> getPlaying() {
         return playing;
     }
     
@@ -425,5 +557,9 @@ public class GameManager implements Listener {
     
     public List<GameDefinition> getGameDefs() {
         return gameDefs;
+    }
+    
+    public List<GameDefinition> getPlayableGameDefs() {
+        return playableGameDefs;
     }
 }

@@ -15,24 +15,24 @@ import org.bukkit.event.player.PlayerInteractEvent;
  * @author Thomas
  */
 public class PlaySignHandler extends SignHandler {
-
-    public PlaySignHandler(String handlingText) {
-        super(handlingText);
+    
+    public PlaySignHandler(String configText, String handlingText) {
+        super(configText, handlingText);
     }
     public int currentSign = 0;
-
+    
     @Override
     public SignTask signSet(SignChangeEvent e) {
         Sign si = (Sign) e.getBlock().getState();
         e.setCancelled(true);
         return setSignName(si, e.getLines());
     }
-
+    
     @Override
     public SignTask onSignLoad(Sign s, String name) {
         return setSignName(s, null);
     }
-
+    
     public SignTask setSignName(Sign s, String[] linesAdded) {
         s.setLine(0, "");
         s.setLine(1, currentSign == 0 ? ChatColor.GREEN + "Join" : ChatColor.RED + "Leave");
@@ -56,9 +56,9 @@ public class PlaySignHandler extends SignHandler {
                 }
             };
         }
-
+        
     }
-
+    
     @Override
     public void onRemoveSign(Sign s) {
         currentSign--;

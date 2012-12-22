@@ -40,6 +40,19 @@ public class GameSource {
         return defs;
     }
 
+    public LinkedList<GameDefinition> listPlayable() {
+        final LinkedList<GameDefinition> defs = new LinkedList<GameDefinition>();
+        for (final File file : files) {
+            try {
+                GameClassLoader l = new GameClassLoader(file.toURI().toURL(), GameManager.class.getClassLoader());
+                list(l, file, defs);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(GameSource.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return defs;
+    }
+
     private void list(ClassLoader loader, final File file, final LinkedList<GameDefinition> defs) {
         if (file != null) {
             System.out.println(file.getPath());
@@ -101,6 +114,7 @@ public class GameSource {
                     def.maxPlayers = info.maxPlayers();
                     def.teamAmount = info.teamAmount();
                     def.PvP = info.pvp();
+                    def.playable = info.playable();
                     games.add(def);
                 }
             }

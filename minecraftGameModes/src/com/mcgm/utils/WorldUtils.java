@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -31,6 +30,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.CraftChunk;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.Player;
 
 /**
@@ -96,22 +96,13 @@ public class WorldUtils {
      */
     public static Location getSafeSpawnAroundABlock(Location l) {
         if (l.getBlock().getType() == Material.AIR) {
-            System.out.println("this is air: "+l);
-            if (isBlockAboveAir(l)) {
-                System.out.println("above is air, returning! "+l);
-                return l;
-            } else {
-                System.out.println("above isn't air, returning! "+l);
-                while (l.getBlock().getType() == Material.AIR) {
-                    l.add(0, 1, 0);
-                    System.out.println("Going up! "+l);
-                }
-                return l;
-            }
-        } else {
             while (l.getBlock().getType() == Material.AIR) {
-                System.out.println("Going up! "+l);
-                l.add(0, 1, 0);
+                l = l.subtract(0, 1, 0);
+            }
+            return l.add(0, 1, 0);
+        } else {
+            while (l.getBlock().getType() != Material.AIR) {
+                l = l.add(0, 1, 0);
             }
             return l;
         }
@@ -187,6 +178,12 @@ public class WorldUtils {
     public static boolean isBlockAboveAir(Location l) {
         Location downOne = l.clone();
         downOne.setY(downOne.getY() + 1);
+        return (downOne.getBlock().getType() == Material.AIR);
+    }
+
+    public static boolean isBlockBelowAir(Location l) {
+        Location downOne = l.clone();
+        downOne.setY(downOne.getY() - 1);
         return (downOne.getBlock().getType() == Material.AIR);
     }
 
@@ -435,6 +432,16 @@ public class WorldUtils {
         for (Location loc : l) {
             loc.getBlock().setType(t);
         }
+    }
+
+    public static void setTypeAndIdWithoutUpdating(World w, int x, int y, int z, int id, byte data) {
+        net.minecraft.server.World nmsworld = ((CraftWorld) w).getHandle(); //Get the NMS equivalent
+        nmsworld.setRawTypeIdAndData(x, y, z, id, data); //Sets the type
+    }
+
+    public static void notifyWorld(World w, int x, int y, int z) {
+        net.minecraft.server.World nmsworld = ((CraftWorld) w).getHandle();
+        nmsworld.notify(x, y, z); //Notifies clients of the change
     }
 
     public static void setBlockFast(Block b, int typeId, byte data) {

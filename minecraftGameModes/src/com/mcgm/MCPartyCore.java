@@ -9,6 +9,8 @@ import com.comphenix.protocol.ProtocolManager;
 import com.mcgm.config.MCPartyConfig;
 import com.mcgm.game.sign.MinigameSignHandler;
 import com.mcgm.game.sign.PlaySignHandler;
+import com.mcgm.game.sign.VoteTimeHandler;
+import com.mcgm.game.sign.WinnerHandler;
 import com.mcgm.manager.CommandManager;
 import com.mcgm.manager.FileManager;
 import com.mcgm.manager.GameManager;
@@ -41,6 +43,7 @@ public final class MCPartyCore extends JavaPlugin {
     private PlayerManager playerManager;
     private SignManager signManager;
     private static MCPartyCore instance;
+    private MinigameSignHandler minigameSignHandler;
 
     public static MCPartyCore getInstance() {
         synchronized (MCPartyCore.class) {
@@ -88,12 +91,18 @@ public final class MCPartyCore extends JavaPlugin {
         playerManager = new PlayerManager(this);
         signManager = new SignManager(this);
         gameManager.loadManager();
-        signManager.addSignHandler(new MinigameSignHandler("[MCGAME]"));
-        signManager.addSignHandler(new PlaySignHandler("[MCPLAY]"));
+        signManager.addSignHandler(minigameSignHandler = new MinigameSignHandler("minigameSigns", "[MCGAME]"));
+        signManager.addSignHandler(new PlaySignHandler("playSigns", "[MCPLAY]"));
+        signManager.addSignHandler(new VoteTimeHandler("voteSigns", "[MCVOTE]"));
+        signManager.addSignHandler(new WinnerHandler("winSigns", "[MCWIN]"));
     }
 
     @Override
     public void onDisable() {
+    }
+
+    public MinigameSignHandler getMinigameSignHandler() {
+        return minigameSignHandler;
     }
 
     public CommandManager getCommandManager() {

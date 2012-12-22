@@ -37,4 +37,12 @@ public @interface GameInfo {
     String seed() default "";
 
     boolean customMapGeneration() default false;
+
+    boolean playable() default true;
+
+    boolean blocksBreakable() default true;
+
+    boolean blocksPlaceable() default true;
+    
+    boolean infiniteFood() default false;
 }

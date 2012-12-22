@@ -52,7 +52,7 @@ public class PlayerManager {
         Command register = new Command("register", "register the play online", "REGISTER", new ArrayList<String>()) {
             @Override
             public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-                if (args.length >= 1) {
+                if (args.length >= 2) {
                     JSONObject e = new JSONObject();
                     e.put("username", sender.getName());
                     e.put("password", args[0]);
@@ -69,7 +69,7 @@ public class PlayerManager {
             @Override
             public boolean execute(CommandSender sender, String commandLabel, String[] args) {
                 if (isPlayerLoggedIn((Player) sender)) {
-                    sender.sendMessage(MCPartyConfig.parse("creditCommand", getPlayerProperties((Player) sender).getCredits() + ""));
+                    sender.sendMessage(MCPartyConfig.parse("creditCommand", getCredits((Player) sender) + ""));
                 } else {
                     sender.sendMessage(MCPartyConfig.parse("badlogin", ((Player) sender).getName()));
                 }
@@ -90,7 +90,7 @@ public class PlayerManager {
     }
     static HashMap<Player, PlayerProperties> playerProperties = new HashMap<>();
 
-    public void updateWeb(Player p, String string, int amount) {
+    public void sendChange(Player p, String string, int amount) {
         JSONObject data = new JSONObject();
         data.put("username", p.getName());
         data.put("what", string.toLowerCase());
@@ -108,18 +108,18 @@ public class PlayerManager {
     public void updatePlayer(JSONObject jdata) {
         Player p = plugin.getServer().getPlayer((String) jdata.get("username"));
         if (jdata.containsKey("credits")) {
-            playerProperties.get(p).setCredits(Integer.parseInt((String) jdata.get("credits")));
+            setCredits(p, Integer.parseInt((String) jdata.get("credits")));
         } else if (jdata.containsKey("id")) {
-            playerProperties.get(p).setId(Integer.parseInt((String) jdata.get("id")));
+            setId(p, Integer.parseInt((String) jdata.get("id")));
         } else if (jdata.containsKey("wins")) {
-            playerProperties.get(p).setWins(Integer.parseInt((String) jdata.get("wins")));
+            setWins(p, Integer.parseInt((String) jdata.get("wins")));
         } else if (jdata.containsKey("losses")) {
-            playerProperties.get(p).setLosses(Integer.parseInt((String) jdata.get("losses")));
+            setLosses(p, Integer.parseInt((String) jdata.get("losses")));
         }
     }
 
     public void login(JSONObject jdata) {
-        Player p = plugin.getServer().getPlayer((String) jdata.get("username"));
+        Player p = plugin.getServer().getPlayerExact((String) jdata.get("username"));
         PlayerProperties pp = new PlayerProperties(p, (Integer.parseInt((String) jdata.get("vip"))) == 1 ? true : false,
                 Integer.parseInt((String) jdata.get("credits")),
                 Integer.parseInt((String) jdata.get("id")),
@@ -128,7 +128,19 @@ public class PlayerManager {
         playerProperties.put(p, pp);
         p.sendMessage(MCPartyConfig.parse("login", p.getName(), (String) jdata.get("lastlogin")));
     }
-    
+
+    public void loginFirst(JSONObject jdata) {
+        Player p = plugin.getServer().getPlayerExact((String) jdata.get("username"));
+        PlayerProperties pp = new PlayerProperties(p, (Integer.parseInt((String) jdata.get("vip"))) == 1 ? true : false,
+                Integer.parseInt((String) jdata.get("credits")),
+                Integer.parseInt((String) jdata.get("id")),
+                Integer.parseInt((String) jdata.get("wins")),
+                Integer.parseInt((String) jdata.get("losses")));
+        playerProperties.put(p, pp);
+        p.sendMessage(MCPartyConfig.parse("Spawn.Message", p.getName()));
+        p.sendMessage(MCPartyConfig.parse("Spawn.MessageFirst", p.getName()));
+    }
+
     public boolean isPlayerLoggedIn(Player p) {
         return playerProperties.containsKey(p);
     }
@@ -137,7 +149,106 @@ public class PlayerManager {
         return playerProperties.get(p);
     }
 
+    public void removePlayer(Player p) {
+        playerProperties.remove(p);
+    }
+
     public HashMap<Player, PlayerProperties> getPlayerProperties() {
         return playerProperties;
+    }
+
+    public void setVIP(Player p, boolean VIP) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            pp.VIP = VIP;
+        } else {
+            System.err.println("[MCGM] Could not set player properties for setVIP: " + p.getName());
+        }
+    }
+
+    public void setCredits(Player p, int credits) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            pp.credits = credits;
+        } else {
+            System.err.println("[MCGM] Could not set player properties for setCredits: " + p.getName());
+        }
+    }
+
+    public void setId(Player p, int id) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            pp.id = id;
+        } else {
+            System.err.println("[MCGM] Could not set player properties for setID: " + p.getName());
+        }
+    }
+
+    public void setWins(Player p, int wins) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            pp.wins = wins;
+        } else {
+            System.err.println("[MCGM] Could not set player properties for setWins: " + p.getName());
+        }
+    }
+
+    public void setLosses(Player p, int losses) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            pp.losses = losses;
+        } else {
+            System.err.println("[MCGM] Could not set player properties, setLosses: " + p.getName());
+        }
+    }
+
+    public boolean isVIP(Player p) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            return pp.VIP;
+        } else {
+            System.err.println("[MCGM] Could not get player properties, isVIP: " + p.getName());
+            return false;
+        }
+    }
+
+    public int getCredits(Player p) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            return pp.credits;
+        } else {
+            System.err.println("[MCGM] Could not get player properties, getCredits: " + p.getName());
+            return -1;
+        }
+    }
+
+    public int getID(Player p) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            return pp.id;
+        } else {
+            System.err.println("[MCGM] Could not get player properties, getId: " + p.getName());
+            return -1;
+        }
+    }
+
+    public int getWins(Player p) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            return pp.wins;
+        } else {
+            System.err.println("[MCGM] Could not get player properties, getWins: " + p.getName());
+            return -1;
+        }
+    }
+
+    public int getLosses(Player p) {
+        PlayerProperties pp = playerProperties.get(p);
+        if (pp != null) {
+            return pp.losses;
+        } else {
+            System.err.println("[MCGM] Could not get player properties, getLosses: " + p.getName());
+            return -1;
+        }
     }
 }

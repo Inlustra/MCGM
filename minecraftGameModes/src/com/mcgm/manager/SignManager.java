@@ -67,7 +67,6 @@ public class SignManager implements Listener {
                 signLoop:
                 for (SignHandler handler : handlers) {
                     for (Sign s2 : handler.getSigns().keySet()) {
-                        System.out.println(s.getBlock() + " " + s2.getBlock());
                         if (s.getBlock().equals(s2.getBlock())) {
                             handler.getTasks().get(s).performTask(e, s);
                             break signLoop;

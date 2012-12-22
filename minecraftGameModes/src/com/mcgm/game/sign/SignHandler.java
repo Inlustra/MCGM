@@ -23,72 +23,75 @@ import org.bukkit.event.player.PlayerInteractEvent;
  * @author Thomas
  */
 public abstract class SignHandler {
-
+    
     private HashMap<Sign, String> handlingSigns;
     private String handlingText;
+    private String configText;
     private HashMap<Sign, SignTask> tasks = new HashMap();
-
+    
     public abstract SignTask signSet(SignChangeEvent e);
-
+    
     public abstract SignTask onSignLoad(Sign s, String name);
-
-    public SignHandler(String handlingText) {
+    
+    public SignHandler(String configText, String handlingText) {
         this.handlingText = handlingText;
+        this.configText = configText;
         this.handlingSigns = new HashMap<>();
         loadConfig();
     }
-
+    
     public void addSign(String signName, Sign s, boolean save) {
         handlingSigns.put(s, signName);
         if (save) {
             saveSign(signName, s.getBlock().getLocation());
         }
     }
-
+    
     public HashMap<Sign, String> getSigns() {
         return handlingSigns;
     }
-
+    
     public String getHandlingText() {
         return handlingText;
     }
-
+    
     private void loadConfig() {
-        if (MCPartyConfig.getConfig().contains("signs." + this.getClass().getSimpleName())) {
-            Set<String> names = MCPartyConfig.getConfig().getConfigurationSection("signs." + this.getClass().getSimpleName()).getKeys(true);
+        if (MCPartyConfig.getConfig().contains(configText)) {
+            Set<String> names = MCPartyConfig.getConfig().getConfigurationSection(configText).getKeys(true);
             for (String name : names) {
-                if (MCPartyConfig.getConfig().contains("signs." + this.getClass().getSimpleName() + "." + name + ".X")) {
-                    System.out.println(MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name));
-                    Block b = MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name).getBlock();
-                    if (b.getType() == Material.SIGN_POST
-                            || b.getType() == Material.WALL_SIGN
-                            || b.getType() == Material.SIGN) {
-                        Sign sign = (Sign) MCPartyConfig.getLocation("signs." + this.getClass().getSimpleName() + "." + name).getBlock().getState();
-                        addSign(name, sign, false);
-                        tasks.put(sign, onSignLoad(sign, name));
-                    }
+                if (MCPartyConfig.getBoolean("Development.ShowSignLoading")) {
+                    System.out.println(MCPartyConfig.getLocation(configText + "." + name));
                 }
+                Block b = MCPartyConfig.getLocation(configText + "." + name).getBlock();
+                if (b.getType() == Material.SIGN_POST
+                        || b.getType() == Material.WALL_SIGN
+                        || b.getType() == Material.SIGN) {
+                    Sign sign = (Sign) MCPartyConfig.getLocation(configText + "." + name).getBlock().getState();
+                    addSign(name, sign, false);
+                    tasks.put(sign, onSignLoad(sign, name));
+                }
+                
             }
         }
     }
-
+    
     public void saveSign(String signName, Location l) {
-        MCPartyConfig.addLocation("signs." + this.getClass().getSimpleName() + "." + signName, l);
+        MCPartyConfig.addLocation(configText + "." + signName, l);
         try {
             MCPartyConfig.getConfig().save(Paths.MCPartyConfig);
         } catch (IOException ex) {
             Logger.getLogger(SignHandler.class.getSimpleName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void removeSign(Sign s) {
-        MCPartyConfig.getConfig().set("signs." + this.getClass().getSimpleName() + "." + getSigns().get(s), null);
+        MCPartyConfig.getConfig().set(configText + "." + getSigns().get(s), null);
         onRemoveSign(s);
         tasks.remove(s);
     }
-
+    
     public abstract void onRemoveSign(Sign s);
-
+    
     public HashMap<Sign, SignTask> getTasks() {
         return tasks;
     }

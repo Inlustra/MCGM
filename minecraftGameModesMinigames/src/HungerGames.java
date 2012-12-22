@@ -1,6 +1,7 @@
 
 import com.mcgm.game.Minigame;
 import com.mcgm.game.event.GameEndEvent;
+import com.mcgm.game.event.PlayerLoseEvent;
 import com.mcgm.game.provider.GameInfo;
 import com.mcgm.utils.WorldUtils;
 import java.util.ArrayList;
@@ -70,13 +71,7 @@ public class HungerGames extends Minigame implements Listener {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
-        currentlyPlaying.remove(e.getEntity());
-        waiting.add(e.getEntity());
-        e.getEntity().getInventory().clear();
-        if (currentlyPlaying.size() == 1) {
-            core.getServer().getPluginManager().callEvent(new GameEndEvent(this,
-                    false, currentlyPlaying.toArray(new Player[currentlyPlaying.size()])));
-        }
+        callPlayerLose(e.getEntity());
     }
 
     @EventHandler
@@ -128,15 +123,6 @@ public class HungerGames extends Minigame implements Listener {
         kitList.add(chameleon);
     }
 
-    @Override
-    public void generateGame() {
-    }
-
-    @Override
-    public void onTimeUp() {
-        core.getServer().getPluginManager().callEvent(new GameEndEvent(this,
-                true, currentlyPlaying.toArray(new Player[currentlyPlaying.size()])));
-    }
     private ArrayList<Kit> kitList = new ArrayList<>();
     private HashMap<Player, Kit> playerChosenKit = new HashMap<>();
 
@@ -147,7 +133,7 @@ public class HungerGames extends Minigame implements Listener {
                 if (e.getPlayer().getItemInHand().getType() != Material.AIR) {
                     Kit k = getKitForItem(e.getPlayer().getItemInHand());
                     if (k.getCost() > 0) {
-                        if (core.getPlayerManager().getPlayerProperties(e.getPlayer()).getCredits() >= k.getCost()) {
+                        if (core.getPlayerManager().getCredits(e.getPlayer()) >= k.getCost()) {
                             playerChosenKit.put(e.getPlayer(), k);
                             e.getPlayer().sendMessage("You have chosen the: " + k.getName() + " kit.");
                         } else {
@@ -254,7 +240,11 @@ public class HungerGames extends Minigame implements Listener {
     }
 
     @Override
-    public void playerDisconnect(Player player) {
+    public void generateGame() {
+    }
+
+    @Override
+    public void onTimeUp() {
     }
 
     private class Kit {
@@ -298,8 +288,8 @@ public class HungerGames extends Minigame implements Listener {
         }
 
         public void givePlayerItems(Player p) {
-            if (getCredits() > 0) {
-                core.getPlayerManager().getPlayerProperties(p).setCredits(core.getPlayerManager().getPlayerProperties(p).getCredits() - getCost());
+            if (core.getPlayerManager().getCredits(p) >= getCost() && getCost() > 0) {
+                core.getPlayerManager().sendChange(p, "credits", -getCost());
             }
             p.getInventory().clear();
             p.getInventory().addItem(itemStacks);
